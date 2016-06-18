@@ -1,0 +1,41 @@
+<webview id="github" src="https://www.github.com/" autosize="on" minwidth="576" minheight="432"></webview>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello Electron!</title>
+  </head>
+  <body>
+    <h1>Hello Electron!</h1>
+    node version <script>document.write(process.versions.node)</script><br>,
+    Chrome version <script>document.write(process.versions.chrome)</script><br>,
+    Electron version <script>document.write(process.versions.electron)</script><br>.
+
+    <script>
+      var alertOnlineStatus = function() {
+        window.alert(navigator.onLine ? 'online' : 'offline');
+      };
+    
+      window.addEventListener('online',  alertOnlineStatus);
+      window.addEventListener('offline',  alertOnlineStatus);
+    
+      alertOnlineStatus();
+    </script>
+
+    <script>
+      onload = function() {
+        const webview = document.getElementById("github");
+        const indicator = document.querySelector(".indicator");
+    
+        const loadstart = function() {
+          indicator.innerText = "loading...";
+        }
+        const loadstop = function() {
+          indicator.innerText = "";
+        }
+        webview.addEventListener("did-start-loading", loadstart);
+        webview.addEventListener("did-stop-loading", loadstop);
+      }
+    </script>
+  </body>
+</html>
