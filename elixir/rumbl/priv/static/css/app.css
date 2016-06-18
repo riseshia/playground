@@ -77,5 +77,8 @@ form.link, form.button {
   }
 }
 
+#msg-container {
+  min-height: 190px;
+}
 
 /*# sourceMappingURL=app.css.map*/
