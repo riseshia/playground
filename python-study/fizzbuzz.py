@@ -1,15 +1,21 @@
 def fizzbuzz(n):
-    if n % 15 == 0: return "FizzBuzz"
-    elif n % 3 == 0: return "Fizz"
-    elif n % 5 == 0: return "Buzz"
-    else: return str(n)
+    if n % 15 == 0:
+        return "FizzBuzz"
+    elif n % 3 == 0:
+        return "Fizz"
+    elif n % 5 == 0:
+        return "Buzz"
+    else:
+        return str(n)
+
 
 # TEST
 def assert_equal(expected, actual, message=""):
     if expected == actual:
         print(".", end="")
     else:
-        print("'{expected}' is expected, but '{actual}' is returned".format(expected=expected, actual=actual))
+        print("'{expected}' is expected, but '{actual}' is returned"
+              .format(expected=expected, actual=actual))
 
 assert_equal("1", fizzbuzz(1))
 assert_equal("Fizz", fizzbuzz(3))
