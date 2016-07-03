@@ -1,5 +1,7 @@
+from datetime import datetime
+
 class Game:
-    games = []
+    _games = []
 
     def __init__(self, name, brand, score, date):
         self.name = name
@@ -8,44 +10,30 @@ class Game:
         self.date = date
 
     def add(game):
-        if game.isValid():
-            Game.games.append(game)
+        if game.isValid() and Game._index(game.name) == -1:
+            Game._games.append(game)
             return True
         else:
             return False
 
     def find_by_name(name):
-        idx = Game.index(name)
-        if idx == -1:
-            return None
-        else:
-            return Game.games[idx]
-
-        return None
-
-    def index(name):
-        idx = 0
-        for game in Game.games:
-            if game.name == name:
-                return idx
-            else:
-                idx += 1
-
-        return -1
+        idx = Game._index(name)
+        if idx != -1:
+            return Game._games[idx]._clone()
 
     def update(game):
-        target_idx = Game.index(game.name)
+        target_idx = Game._index(game.name)
         if not target_idx == -1:
-            del Game.games[target_idx]
-            Game.add(game)
+            del Game._games[target_idx]
+            Game._games.append(game)
             return True
         else:
             return False
 
     def delete(game):
-        target_idx = Game.index(game.name)
+        target_idx = Game._index(game.name)
         if not target_idx == -1:
-            del Game.games[target_idx]
+            del Game._games[target_idx]
             return True
         else:
             return False
@@ -67,6 +55,23 @@ class Game:
             return False
         elif not self.date:
             return False
-        # elif: for Date parsing
+
+        try:
+            datetime.strptime(self.date, "%Y-%m-%d")
+        except ValueError:
+            return False
         else:
             return True
+
+    def _clone(self):
+        return Game(self.name, self.brand, self.score, self.date)
+
+    def _index(name):
+        idx = 0
+        for game in Game._games:
+            if game.name == name:
+                return idx
+            else:
+                idx += 1
+
+        return -1
