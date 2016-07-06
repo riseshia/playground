@@ -2,7 +2,7 @@ from datetime import datetime
 from brand import Brand
 
 class Game:
-    _games = []
+    _repo = []
     _last_uniq_id = 0
 
     def __init__(self, name, brand, score, date):
@@ -58,7 +58,7 @@ class Game:
         elif not Game.find_by("name", self.name):
             obj = Game._clone(self)
             obj.id = Game._genId()
-            Game._games.append(obj)
+            Game._repo.append(obj)
             return True
         else:
             return False
@@ -74,12 +74,12 @@ class Game:
         game = Game.find_by("id", self.id)
         if game and game.id == self.id:
             idx = 0
-            for inner_game in Game._games:
+            for inner_game in Game._repo:
                 if inner_game.id == self.id:
-                    del Game._games[idx]
+                    del Game._repo[idx]
                 idx += 1
 
-            Game._games.append(Game._clone(self))
+            Game._repo.append(Game._clone(self))
             return True
 
         return False
@@ -89,16 +89,16 @@ class Game:
             return False
 
         idx = 0
-        for inner_brand in Game._games:
-            if inner_brand.id == self.id:
-                del Game._games[idx]
+        for inner_game in Game._repo:
+            if inner_game.id == self.id:
+                del Game._repo[idx]
             return True
             idx += 1
 
         return False
 
     def find_by(key, value):
-        for brand in Game._games:
+        for brand in Game._repo:
             if key == "id" and brand.id == value:
                 return Game._clone(brand)
             elif key == "name" and brand.name == value:

@@ -1,5 +1,5 @@
 class Brand:
-    _brands = []
+    _repo = []
     _last_uniq_id = 0
 
     def __init__(self, name):
@@ -25,7 +25,7 @@ class Brand:
         if self.isValid() and not Brand.find_by("name", self.name):
             obj = Brand(self.name)
             obj.id = Brand._genId()
-            Brand._brands.append(obj)
+            Brand._repo.append(obj)
             return True
         else:
             return False
@@ -34,11 +34,12 @@ class Brand:
         if self.isValid() and self.id:
             brand = Brand.find_by("id", self.id)
             if brand and brand.id == self.id:
-                for inner_brand in Brand._brands:
+                idx = 0
+                for inner_brand in Brand._repo:
                     if inner_brand.id == self.id:
-                        del inner_brand
+                        del Brand._repo[idx]
 
-                Brand._brands.append(Brand._clone(self))
+                Brand._repo.append(Brand._clone(self))
                 return True
 
         return False
@@ -48,16 +49,16 @@ class Brand:
             return False
 
         idx = 0
-        for inner_brand in Brand._brands:
+        for inner_brand in Brand._repo:
             if inner_brand.id == self.id:
-                del Brand._brands[idx]
+                del Brand._repo[idx]
             return True
             idx += 1
 
         return False
 
     def find_by(key, value):
-        for brand in Brand._brands:
+        for brand in Brand._repo:
             if key == "id" and brand.id == value:
                 return Brand._clone(brand)
             elif key == "name" and brand.name == value:
