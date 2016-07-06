@@ -47,11 +47,12 @@ class Brand:
         if not self.id:
             return False
 
+        idx = 0
         for inner_brand in Brand._brands:
             if inner_brand.id == self.id:
-                del inner_brand
-                print(Brand._brands)
+                del Brand._brands[idx]
             return True
+            idx += 1
 
         return False
 
@@ -63,4 +64,3 @@ class Brand:
                 return Brand._clone(brand)
 
         return None
-

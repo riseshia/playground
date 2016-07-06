@@ -6,7 +6,6 @@
 
  * 왜 게임 이름은 변경할 수가 없는가.
  * 왜 게임 이름으로만 검색이 되나.
- * 왜 제작사 기준으로 게임 목록을 가져오질 못하나.
 
 왜긴요. 호갱님이 사양을 그 따위로 주셔서 그렇죠.
 하지만 작은 고객님을 건드리면 아주 X되는 거에요.
@@ -91,22 +90,6 @@ Brand("Navel").save()
 Brand.find_by("name", "Navel") # => 윗줄에서 저장한 Brand 객체를 반환
 
 Brand.find_by("name", "10cm") # => None
-```
-
-### 게임 목록 가져오기
-
-`def games(self)`
-
-해당 제작사에 속해있는 게임 목록을 가져옵니다.
-게임 객체로 구성된 리스트로 반환하며, 아무것도 없는 경우 빈 리스트를 반환하세요.
-
-```python
-Brand("Navel").save()
-navel = Brand.find_by("name", "Navel")
-navel.games() # => []
-
-shuffle = Game("Shuffle", navel, 10, "2015-01-01").save()
-navel.games() # => [shuffle]
 ```
 
 ### 제작사 업데이트
