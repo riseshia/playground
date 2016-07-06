@@ -15,6 +15,7 @@ class Game:
         else:
             self.brand_id = None
 
+    # Utility Function
     def _genId():
         Game._last_uniq_id += 1
         return Game._last_uniq_id
@@ -25,9 +26,29 @@ class Game:
         new_obj.brand_id = obj.brand_id
         return new_obj
 
+    # Server Side
+    def _create(obj):
+        copied = Game._clone(obj)
+        if not obj.id:
+            copied.id = Game._genId()
+        Game._repo.append(copied)
+
+    def _destroy(obj):
+        idx = 0
+        for game in Game._repo:
+            if game.id == obj.id:
+                del Game._repo[idx]
+                return True
+            idx += 1
+
+        return False
+
+    # Client Side
+    def _isValidBrand(self):
+        return self.brand() != None
+
     def brand(self):
         return Brand.find_by("id", self.brand_id)
-
 
     def isValid(self):
         if not isinstance(self.name, str):
@@ -53,49 +74,32 @@ class Game:
     def save(self):
         if not self.isValid():
             return False
-        elif not Brand.find_by("id", self.brand_id):
+        elif not self._isValidBrand():
             return False
-        elif not Game.find_by("name", self.name):
-            obj = Game._clone(self)
-            obj.id = Game._genId()
-            Game._repo.append(obj)
-            return True
+        elif Game.find_by("name", self.name):
+            return False
         else:
-            return False
+            Game._create(self)
+            return True
 
     def update(self):
         if not self.isValid():
             return False
         elif not self.id:
             return False
-        elif not Brand.find_by("id", self.brand_id):
+        elif not self._isValidBrand():
             return False
 
         game = Game.find_by("id", self.id)
-        if game and game.id == self.id:
-            idx = 0
-            for inner_game in Game._repo:
-                if inner_game.id == self.id:
-                    del Game._repo[idx]
-                idx += 1
-
-            Game._repo.append(Game._clone(self))
-            return True
-
-        return False
-
-    def delete(self):
-        if not self.id:
+        if not(game and game.id == self.id):
             return False
 
-        idx = 0
-        for inner_game in Game._repo:
-            if inner_game.id == self.id:
-                del Game._repo[idx]
-            return True
-            idx += 1
+        Game._destroy(self)
+        Game._create(self)
+        return True
 
-        return False
+    def delete(self):
+        return self.id and Game._destroy(self)
 
     def find_by(key, value):
         for brand in Game._repo:
