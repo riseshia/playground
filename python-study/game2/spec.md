@@ -54,7 +54,26 @@ brand1 = Brand("Navel")
 brand1.isValid() # => True
 
 brand2 = Brand("")
-brand1.isValid() # => False
+brand2.isValid() # => False
+```
+
+### 제작사 저장하기
+
+`def save(self)`
+
+성공하면 True, 아니면 False를 반환합니다.
+성공한 경우에는 식별자를 부여합니다.
+실패하는 경우는 다음과 같습니다.
+
+ * 제작사 객체가 유효하지 않은 경우
+ * 같은 이름의 제작사가 저장되어 있는 경우
+
+```python
+navel = Brand("月に寄りそう乙女たちの作法")
+navel.save() # => True
+
+navel = Brand("")
+navel.save() # => False
 ```
 
 ### 제작사 검색
@@ -199,28 +218,11 @@ moon.brand = unknown
 moon.save() # => False
 ```
 
-### 제작사 정보 가져오기
-
-`def brand(self)`
-
-해당 게임의 제작사 객체를 가져옵니다.
-가져올 수 없는 경우 None을 반환하세요.
-
-```python
-# navel이라는 변수에 저장된 제작사가 있다고 가정
-Game("Shuffle!!", navel, 10, "2015-01-01").save()
-shuffle = Game.find_by("name", "Shuffle!!")
-shuffle.brand() # => navel
-
-ever = Game("Ever17", None, 10, "2015-01-01") # Unsaved
-ever.brand() # => None
-```
-
 ### 게임 검색
 
 `def find_by(key, value)`
 
-`key`에는 검색하고 싶은 속성의 이름(name, score, date, brand_id)을
+`key`에는 검색하고 싶은 속성의 이름(name, score, date)을
 문자열로 넘겨주고, 해당 키에 대해서 매칭하기를 원하는 값을 `value`에 넣어주세요.
 
 첫번째로 조건을 만족하는 게임을 반환합니다.
@@ -230,6 +232,8 @@ ever.brand() # => None
 # navel이라는 변수에 저장된 제작사가 있다고 가정
 Game("月に寄りそう乙女たちの作法", navel, 10, "2015-01-01").save()
 Game.find_by("name", "月に寄りそう乙女たちの作法") # => 윗줄에서 저장한 Game 객체를 반환
+Game.find_by("score", 10) # => 윗줄에서 저장한 Game 객체를 반환
+Game.find_by("date", "2015-01-01") # => 윗줄에서 저장한 Game 객체를 반환
 
 Game.find_by("name", "Unknown") # => None
 ```
@@ -279,6 +283,24 @@ shuffle.delete() # => True
 ever = Game("Ever17", navel, 10, "2015-01-01") # Unsaved
 ever.delete() # => False
 ```
+
+### 제작사 정보 가져오기
+
+`def brand(self)`
+
+해당 게임의 제작사 객체를 가져옵니다.
+가져올 수 없는 경우 None을 반환하세요.
+
+```python
+# navel이라는 변수에 저장된 제작사가 있다고 가정
+Game("Shuffle!!", navel, 10, "2015-01-01").save()
+shuffle = Game.find_by("name", "Shuffle!!")
+shuffle.brand() # => navel
+
+ever = Game("Ever17", None, 10, "2015-01-01") # Unsaved
+ever.brand() # => None
+```
+
 
 ## Test 사용하기
 
