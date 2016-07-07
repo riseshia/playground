@@ -33,15 +33,34 @@ class Game:
             copied.id = Game._genId()
         Game._repo.append(copied)
 
-    def _destroy(obj):
+    def _index_by(key, value):
         idx = 0
         for game in Game._repo:
-            if game.id == obj.id:
-                del Game._repo[idx]
-                return True
+            if key == "id" and game.id == value:
+                return idx
+            elif key == "name" and game.name == value:
+                return idx
+            elif key == "score" and game.score == value:
+                return idx
+            elif key == "date" and game.date == value:
+                return idx
             idx += 1
 
-        return False
+    def _select_by(key, value):
+        idx = Game._index_by(key, value)
+        if idx != None:
+            return Game._clone(Game._repo[idx])
+        else:
+            return None
+
+
+    def _destroy(obj):
+        idx = Game._index_by("id", obj.id)
+        if idx == None:
+            return False
+
+        del Game._repo[idx]
+        return True
 
     # Client Side
     def _isValidBrand(self):
@@ -78,20 +97,17 @@ class Game:
             return False
         elif Game.find_by("name", self.name):
             return False
-        else:
-            Game._create(self)
-            return True
+
+        Game._create(self)
+        return True
 
     def update(self):
+        game = Game.find_by("id", self.id)
         if not self.isValid():
-            return False
-        elif not self.id:
             return False
         elif not self._isValidBrand():
             return False
-
-        game = Game.find_by("id", self.id)
-        if not(game and game.id == self.id):
+        elif not(game and game.id == self.id):
             return False
 
         Game._destroy(self)
@@ -99,17 +115,7 @@ class Game:
         return True
 
     def delete(self):
-        return self.id and Game._destroy(self)
+        return Game._destroy(self)
 
     def find_by(key, value):
-        for brand in Game._repo:
-            if key == "id" and brand.id == value:
-                return Game._clone(brand)
-            elif key == "name" and brand.name == value:
-                return Game._clone(brand)
-            elif key == "score" and brand.score == value:
-                return Game._clone(brand)
-            elif key == "date" and brand.date == value:
-                return Game._clone(brand)
-
-        return None
+        return Game._select_by(key, value)

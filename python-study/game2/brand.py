@@ -23,15 +23,29 @@ class Brand:
             copied.id = Brand._genId()
         Brand._repo.append(copied)
 
-    def _destroy(obj):
+    def _index_by(key, value):
         idx = 0
         for brand in Brand._repo:
-            if brand.id == obj.id:
-                del Brand._repo[idx]
-                return True
+            if key == "id" and brand.id == value:
+                return idx
+            elif key == "name" and brand.name == value:
+                return idx
             idx += 1
 
-        return False
+    def _select_by(key, value):
+        idx = Brand._index_by(key, value)
+        if idx != None:
+            return Brand._clone(Brand._repo[idx])
+        else:
+            return None
+
+    def _destroy(obj):
+        idx = Brand._index_by("id", obj.id)
+        if idx == None:
+            return False
+
+        del Brand._repo[idx]
+        return True
 
     # Client Side
     def isValid(self):
@@ -44,17 +58,14 @@ class Brand:
         if not self.isValid() or Brand.find_by("name", self.name):
             return False
 
-        obj = Brand(self.name)
-        obj.id = Brand._genId()
-        Brand._repo.append(obj)
+        Brand._create(self)
         return True
 
     def update(self):
-        if not (self.isValid() and self.id):
-            return False
-
         brand = Brand.find_by("id", self.id)
-        if not (brand and brand.id == self.id):
+        if not self.isValid():
+            return False
+        elif not (brand and brand.id == self.id):
             return False
 
         Brand._destroy(self)
@@ -62,16 +73,7 @@ class Brand:
         return True
 
     def delete(self):
-        if not self.id:
-            return False
-
         return Brand._destroy(self)
 
     def find_by(key, value):
-        for brand in Brand._repo:
-            if key == "id" and brand.id == value:
-                return Brand._clone(brand)
-            elif key == "name" and brand.name == value:
-                return Brand._clone(brand)
-
-        return None
+        return Brand._select_by(key, value)
