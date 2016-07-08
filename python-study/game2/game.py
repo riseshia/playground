@@ -1,10 +1,8 @@
 from datetime import datetime
 from brand import Brand
+from repo import Repo
 
 class Game:
-    _repo = []
-    _last_uniq_id = 0
-
     def __init__(self, name, brand, score, date):
         self.name = name
         self.score = score
@@ -16,55 +14,29 @@ class Game:
             self.brand_id = None
 
     # Utility Function
-    def _genId():
-        Game._last_uniq_id += 1
-        return Game._last_uniq_id
-
     def _clone(obj):
         new_obj = Game(obj.name, None, obj.score, obj.date)
         new_obj.id = obj.id
         new_obj.brand_id = obj.brand_id
         return new_obj
 
-    # Server Side
-    def _create(obj):
-        copied = Game._clone(obj)
-        if not obj.id:
-            copied.id = Game._genId()
-        Game._repo.append(copied)
-
-    def _index_by(key, value):
-        idx = 0
-        for game in Game._repo:
-            if key == "id" and game.id == value:
-                return idx
-            elif key == "name" and game.name == value:
-                return idx
-            elif key == "score" and game.score == value:
-                return idx
-            elif key == "date" and game.date == value:
-                return idx
-            idx += 1
-
-    def _select_by(key, value):
-        idx = Game._index_by(key, value)
-        if idx != None:
-            return Game._clone(Game._repo[idx])
-        else:
-            return None
-
-
-    def _destroy(obj):
-        idx = Game._index_by("id", obj.id)
-        if idx == None:
-            return False
-
-        del Game._repo[idx]
-        return True
-
-    # Client Side
     def _isValidBrand(self):
         return self.brand() != None
+
+    # Client Side
+    def get(self, key):
+        if key == "id":
+            return self.id
+        elif key == "name":
+            return self.name
+        elif key == "brand_id":
+            return self.brand_id
+        elif key == "score":
+            return self.score
+        elif key == "date":
+            return self.date
+
+        return None
 
     def brand(self):
         return Brand.find_by("id", self.brand_id)
@@ -98,7 +70,7 @@ class Game:
         elif Game.find_by("name", self.name):
             return False
 
-        Game._create(self)
+        Repo.create(Game, self)
         return True
 
     def update(self):
@@ -110,12 +82,15 @@ class Game:
         elif not(game and game.id == self.id):
             return False
 
-        Game._destroy(self)
-        Game._create(self)
+        Repo.destroy(Game, self)
+        Repo.create(Game, self)
         return True
 
     def delete(self):
-        return Game._destroy(self)
+        return Repo.destroy(Game, self)
 
     def find_by(key, value):
-        return Game._select_by(key, value)
+        return Repo.select_by(Game, key, value)
+
+
+Repo.register(Game, ["id", "name", "brand_id", "date", "score"])
