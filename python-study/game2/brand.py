@@ -14,6 +14,10 @@ class Brand:
         new_obj.id = obj.id
         return new_obj
 
+    def _isDup(self):
+        brand = Brand.find_by("name", self.name)
+        return brand and brand.id != self.id
+
     # Client Side
     def get(self, key):
         if key == "id":
@@ -24,10 +28,8 @@ class Brand:
         return None
 
     def isValid(self):
-        brand = Brand.find_by("name", self.name)
-        if brand and brand.id != self.id:
+        if self._isDup():
             return False
-
         if not self.name:
             return False
 

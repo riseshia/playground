@@ -23,6 +23,10 @@ class Game:
     def _isValidBrand(self):
         return self.brand() != None
 
+    def _isDup(self):
+        game = Game.find_by("name", self.name)
+        return game and game.id != self.id
+
     # Client Side
     def get(self, key):
         if key == "id":
@@ -42,23 +46,17 @@ class Game:
         return Brand.find_by("id", self.brand_id)
 
     def isValid(self):
-        if not isinstance(self.name, str):
-            return False
-        elif not self.name:
-            return False
-        elif not isinstance(self.score, int):
-            return False
-        elif self.score <= 0 or self.score >= 11:
-            return False
-        elif not isinstance(self.date, str):
-            return False
-        elif not self.date:
-            return False
-
-        game = Game.find_by("name", self.name)
-        if game and game.id != self.id:
-            return False
-        if not self._isValidBrand():
+        validated = [
+            isinstance(self.name, str),
+            self.name,
+            isinstance(self.score, int),
+            self.score in range(1, 11),
+            isinstance(self.date, str),
+            self.date,
+            not self._isDup(),
+            self._isValidBrand()
+        ]
+        if not all(validated):
             return False
 
         try:
