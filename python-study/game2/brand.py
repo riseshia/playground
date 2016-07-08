@@ -24,13 +24,17 @@ class Brand:
         return None
 
     def isValid(self):
-        if self.name:
-            return True
-        else:
+        brand = Brand.find_by("name", self.name)
+        if brand and brand.id != self.id:
             return False
 
+        if not self.name:
+            return False
+
+        return True
+
     def save(self):
-        if not self.isValid() or Brand.find_by("name", self.name):
+        if not self.isValid():
             return False
 
         Repo.create(Brand, self)
@@ -39,8 +43,6 @@ class Brand:
     def update(self):
         brand = Brand.find_by("id", self.id)
         if not self.isValid():
-            return False
-        elif not (brand and brand.id == self.id):
             return False
 
         Repo.destroy(Brand, self)

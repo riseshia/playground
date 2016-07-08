@@ -55,6 +55,12 @@ class Game:
         elif not self.date:
             return False
 
+        game = Game.find_by("name", self.name)
+        if game and game.id != self.id:
+            return False
+        if not self._isValidBrand():
+            return False
+
         try:
             datetime.strptime(self.date, "%Y-%m-%d")
         except ValueError:
@@ -65,21 +71,12 @@ class Game:
     def save(self):
         if not self.isValid():
             return False
-        elif not self._isValidBrand():
-            return False
-        elif Game.find_by("name", self.name):
-            return False
 
         Repo.create(Game, self)
         return True
 
     def update(self):
-        game = Game.find_by("id", self.id)
         if not self.isValid():
-            return False
-        elif not self._isValidBrand():
-            return False
-        elif not(game and game.id == self.id):
             return False
 
         Repo.destroy(Game, self)
