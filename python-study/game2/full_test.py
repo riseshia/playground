@@ -206,24 +206,6 @@ class TestGameAndBrand(unittest.TestCase):
 
         self.assertFalse(game.delete())
 
-    def test_game_brand_returns_none(self):
-        brand = Brand("game14-brand")
-        game = Game("game14", brand, 10, "2015-01-01")
-
-        self.assertIsNone(game.brand())
-
-    def test_game_brand_returns_its_brand(self):
-        Brand("game15-brand").save()
-        brand = Brand.find_by("name", "game15-brand")
-        game = Game("game15", brand, 10, "2015-01-01")
-
-        self.assertIsNotNone(game.brand())
-        self.assertEqual("game15-brand", game.brand().name)
-
-    def test_brand_delete_return_false_when_has_games(self):
-        brand = Brand("Brand11")
-        self.assertFalse(brand.delete())
-
 
 if __name__ == "__main__":
     unittest.main()

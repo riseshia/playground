@@ -41,7 +41,7 @@ instance.name # => "Navel"
 
 ### 제작사 유효성 검증
 
-`def isVaild(self)`
+`def isValid(self)`
 
 해당 제작사가 유효한지를 검증합니다.
 유효하다면 True, 그렇지 않다면 False로 반환해주세요.
@@ -94,7 +94,7 @@ Brand.find_by("name", "10cm") # => None
 
 ### 제작사 업데이트
 
-`def update(self, key, value)`
+`def update(self)`
 
 변경에 성공하면 True, 실패하면 False를 반환합니다.
 실패하는 경우는 다음과 같습니다.
@@ -265,23 +265,6 @@ shuffle.delete() # => True
 
 ever = Game("Ever17", navel, 10, "2015-01-01") # Unsaved
 ever.delete() # => False
-```
-
-### 제작사 정보 가져오기
-
-`def brand(self)`
-
-해당 게임의 제작사 객체를 가져옵니다.
-가져올 수 없는 경우 None을 반환하세요.
-
-```python
-# navel이라는 변수에 저장된 제작사가 있다고 가정
-Game("Shuffle!!", navel, 10, "2015-01-01").save()
-shuffle = Game.find_by("name", "Shuffle!!")
-shuffle.brand() # => navel
-
-ever = Game("Ever17", None, 10, "2015-01-01") # Unsaved
-ever.brand() # => None
 ```
 
 
