@@ -175,3 +175,15 @@ jspm_packages
 .node_repl_historybeam
 
 *.asar
+
+### Vim ###
+# swap
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
