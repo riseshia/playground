@@ -1,0 +1,6 @@
+[
+    {
+        "keys": ["alt+c"], 
+        "command": "easy_test"
+    }
+]
