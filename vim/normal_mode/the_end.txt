@@ -1,0 +1,7 @@
+At the end of the word
+db x
+b dw
+daw => it's recommended since we could use this via '.' XD
+
+The end is nigh
+
