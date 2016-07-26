@@ -1,0 +1,2 @@
+A <C-R>=6*35<CR>
+6 chairs, each costing $35, totals $ 
