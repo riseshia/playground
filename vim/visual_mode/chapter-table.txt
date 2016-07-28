@@ -1,0 +1,5 @@
+<C-v>3j x... gv r| yyp Vr-
+Chapter            Page
+Normal mode          15
+Insert mode          31
+Visual mode          44
