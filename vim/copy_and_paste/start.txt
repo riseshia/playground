@@ -1,0 +1,28 @@
+Practica lvim
+Practical vim
+
+2) line two
+1) line one
+3) line three
+
+1) line one
+2) line two
+3) line three
+
+I like chips and fish.
+I like fish and chips.
+
+<table>
+
+  <tr>
+    <td>Symbol</td>
+    <td>Name</td>
+  </tr>
+
+  <tr>
+    <td>Symbol</td>
+    <td>Name</td>
+  </tr>
+
+</table>
+
