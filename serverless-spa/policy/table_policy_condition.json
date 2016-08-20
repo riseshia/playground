@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+      "Effect": "Allow",
+      "Action": ["dynamodb:Scan"],
+      "Resource": ["arn:aws:dynamodb:us-east-1:730171000947:table/learnjs"],
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "dynamodb:Select": ["COUNT"]
+        }
+      }
+  }]
+}

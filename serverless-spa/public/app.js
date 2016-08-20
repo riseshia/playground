@@ -21,6 +21,76 @@ learnjs.triggerEvent = function(name, args) {
   $('.view-container>*').trigger(name, args);
 }
 
+learnjs.sendDbRequest = function(req, retry) {
+  var promise = new $.Deferred();
+  req.on('error', function(error) {
+    if (error.code === "CredentialsError") {
+      learnjs.identity.then(function(identity) {
+        return identity.refresh().then(function() {
+          return retry(); 
+        }, function(resp) {
+          promise.reject(resp);
+        });
+      });
+    } else {
+      promise.reject(error);
+    }
+  });
+  req.on('success', function(resp) {
+    promise.resolve(resp.data); 
+  });
+  req.send();
+  return promise;
+}
+
+learnjs.fetchAnswer = function(problemId) {
+  return learnjs.identity.then(function(identity) {
+    var db = new AWS.DynamoDB.DocumentClient();
+    var item = {
+      TableName: 'learnjs',
+      Key: {
+        userId: identity.id,
+        problemId: problemId
+      }
+    };
+    return learnjs.sendDbRequest(db.get(item), function() {
+      return learnjs.fetchAnswer(problemId);
+    })
+  });
+};
+
+learnjs.countAnswers = function(problemId) {
+  return learnjs.identity.then(function(identity) {
+    var db = new AWS.DynamoDB.DocumentClient();
+    var params = {
+      TableName: 'learnjs',
+      Select: 'COUNT',
+      FilterExpression: 'problemId = :problemId',
+      ExpressionAttributeValues: {':problemId': problemId}
+    };
+    return learnjs.sendDbRequest(db.scan(params), function() {
+      return learnjs.countAnswers(problemId);
+    })
+  });
+}
+
+learnjs.saveAnswer = function(problemId, answer) {
+  return learnjs.identity.then(function(identity) {
+    var db = new AWS.DynamoDB.DocumentClient();
+    var item = {
+      TableName: 'learnjs',
+      Item: {
+        userId: identity.id,
+        problemId: problemId,
+        answer: answer
+      }
+    };
+    return learnjs.sendDbRequest(db.put(item), function() {
+      return learnjs.saveAnswer(problemId, answer);
+    })
+  });
+};
+
 learnjs.template = function(name) {
   return $('.templates .' + name).clone();
 }
@@ -66,6 +136,7 @@ learnjs.problemView = function(data) {
     if (checkAnswer()) {
       var flashContent = learnjs.buildCorrectFlash(problemNumber);
       learnjs.flashElement(resultFlash, flashContent);
+      learnjs.saveAnswer(problemNumber, answer.val());
     } else {
       learnjs.flashElement(resultFlash, 'Incorrect!');
     }
@@ -80,6 +151,12 @@ learnjs.problemView = function(data) {
       buttonItem.remove();
     });
   }
+
+  learnjs.fetchAnswer(problemNumber).then(function(data) {
+    if (data.Item) {
+      answer.val(data.Item.answer);
+    }
+  });
 
   view.find('.check-btn').click(checkAnswerClick);
   view.find('.title').text('Problem #' + problemNumber);
