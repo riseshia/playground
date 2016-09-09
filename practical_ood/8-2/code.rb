@@ -11,11 +11,8 @@ class Bicycle
   end
 end
 
-require "forwardable"
 class Parts
-  extend Forwardable
-  def_delegators :@parts, :size, :each
-  include Enumerable
+  attr_reader :parts
 
   def initialize(parts)
     @parts = parts
@@ -25,6 +22,24 @@ class Parts
     parts.select(&:needs_spare)
   end
 end
+
+class Part
+  attr_reader :name, :description, :needs_spare
+
+  def initialize(args)
+    @name = args[:name]
+    @description = args[:description]
+    @needs_spare = args.fetch(:needs_spare, true)
+  end
+end
+
+chain = Part.new(name: "chain", description: "10-speed")
+road_tire = Part.new(name: "tire_size", description: "23")
+tape = Part.new(name: "type_color", description: "red")
+mountain_tire = Part.new(name: "tire_size", description: "2.1")
+front_shock = Part.new(name: "front_shock",
+                       description: "Manitou",
+                       needs_spare: false)
 
 class RoadBikeParts < Parts
   attr_reader :tape_color
@@ -58,27 +73,5 @@ class MountainBikeParts < Parts
     '2.1'
   end
 end
-
-require "ostruct"
-module PartsFactory
-  def self.build(config,
-                 parts_class = Parts)
-
-    parts_class.new(
-      config.collect { |part_config|
-        OpenStruct.new(
-          name: part_config[0],
-          description: part_config[1],
-          needs_spare: part_config.fetch(2, true))
-      })
-  end
-end
-
-config = [
-  ["chain", "10-speed"],
-  ["tire_size", "23"],
-  ["type_color", "red"],
-  ["tire_size", "2.1"],
-  ["front_shock", "Manitou", false]]
 
 
