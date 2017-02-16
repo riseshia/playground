@@ -1,17 +1,36 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <hello></hello>
+    <todos
+      :todos="todos"
+      @add-todo="addTodo"
+      @remove-todo="removeTodo"
+    />
   </div>
 </template>
 
 <script>
-import Hello from './components/Hello'
+import Todos from './components/Todos'
 
 export default {
   name: 'app',
   components: {
-    Hello
+    Todos
+  },
+  data: function () {
+    return {
+      todos: [
+        'todo1',
+        'todo2'
+      ]
+    }
+  },
+  methods: {
+    addTodo: function (item) {
+      this.todos.unshift(item)
+    },
+    removeTodo: function (index) {
+      this.todos.splice(index, 1)
+    }
   }
 }
 </script>
