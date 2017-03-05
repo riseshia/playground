@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "prepublish": "typings install",
+    "watch": "webpack --watch"
+  },
   "devDependencies": {
     "@types/node": "^7.0.5",
-    "typescript": "^2.2.1"
+    "ts-loader": "^2.0.1",
+    "typescript": "next",
+    "typings": "^2.1.0",
+    "webpack": "^2.2.1"
   }
 }
