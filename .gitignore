@@ -289,4 +289,10 @@ ENV/
 db.sqlite3
 media
 
+### Elm ###
+# elm-package generated files
+elm-stuff
+# elm-repl generated files
+repl-temp-*
+
 # End of https://www.gitignore.io/api/python,django
