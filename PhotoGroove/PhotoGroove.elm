@@ -19,6 +19,7 @@ type ThumbnailSize
 
 type Msg
     = SelectByUrl String
+    | SelectByIndex Int
     | SurpriseMe
     | SetSize ThumbnailSize
 
@@ -123,22 +124,27 @@ view model =
         ]
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SelectByUrl url ->
-            { model | selectedUrl = url }
+            ( { model | selectedUrl = url }, Cmd.none )
+
+        SelectByIndex index ->
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
 
         SurpriseMe ->
-            { model | selectedUrl = "2.jpeg" }
+            ( model, Random.generate SelectByIndex randomPhotoPicker )
 
         SetSize thumbnail_size ->
-            { model | chosenSize = thumbnail_size }
+            ( { model | chosenSize = thumbnail_size }, Cmd.none )
 
 
+main : Program Never Model Msg
 main =
-    Html.beginnerProgram
-        { model = initialModel
+    Html.program
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = (\model -> Sub.none)
         }
