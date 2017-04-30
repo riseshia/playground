@@ -1,10 +1,11 @@
 module PhotoGroove exposing (..)
 
-import Html exposing (Html, div, h1, h3, img, text, button, label, input)
+import Html exposing (Html, div, h1, h3, img, text, button, label, input, p)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
 import Random
+import Http
 
 
 type alias Photo =
@@ -22,30 +23,31 @@ type Msg
     | SelectByIndex Int
     | SurpriseMe
     | SetSize ThumbnailSize
+    | LoadPhotos (Result Http.Error String)
 
 
 type alias Model =
     { photos : List Photo
-    , selectedUrl : String
+    , selectedUrl : Maybe String
+    , loadingError : Maybe String
     , chosenSize : ThumbnailSize
     }
 
 
-randomPhotoPicker : Random.Generator Int
-randomPhotoPicker =
-    Random.int 0 (Array.length photoArray - 1)
-
-
 initialModel : Model
 initialModel =
-    { photos =
-        [ { url = "1.jpeg" }
-        , { url = "2.jpeg" }
-        , { url = "3.jpeg" }
-        ]
-    , selectedUrl = "1.jpeg"
+    { photos = []
+    , selectedUrl = Nothing
+    , loadingError = Nothing
     , chosenSize = Medium
     }
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    "http://elm-in-action.com/photos/list"
+        |> Http.getString
+        |> Http.send LoadPhotos
 
 
 photoArray : Array Photo
@@ -58,14 +60,14 @@ urlPrefix =
     "http://elm-in-action.com/"
 
 
-getPhotoUrl : Int -> String
+getPhotoUrl : Int -> Maybe String
 getPhotoUrl index =
     case Array.get index photoArray of
         Just photo ->
-            photo.url
+            Just photo.url
 
         Nothing ->
-            ""
+            Nothing
 
 
 sizeToString : ThumbnailSize -> String
@@ -81,11 +83,11 @@ sizeToString size =
             "large"
 
 
-viewThumbnail : String -> Photo -> Html Msg
+viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img
         [ src (urlPrefix ++ thumbnail.url)
-        , classList [ ( "selected", selectedUrl == thumbnail.url ) ]
+        , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
         , onClick (SelectByUrl thumbnail.url)
         ]
         []
@@ -104,6 +106,29 @@ viewSizeChooser size =
         ]
 
 
+viewLarge : Maybe String -> Html Msg
+viewLarge maybeUrl =
+    case maybeUrl of
+        Nothing ->
+            text ""
+
+        Just url ->
+            img [ class "large", src (urlPrefix ++ "large/" ++ url) ] []
+
+
+viewOnError : Model -> Html Msg
+viewOnError model =
+    case model.loadingError of
+        Nothing ->
+            view model
+
+        Just errorMessage ->
+            div [ class "error-message" ]
+                [ h1 [] [ text "Photo Groove" ]
+                , p [] [ text errorMessage ]
+                ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "content" ]
@@ -116,11 +141,7 @@ view model =
             (List.map viewSizeChooser [ Small, Medium, Large ])
         , div [ id "thumbnails", class (sizeToString model.chosenSize) ]
             (List.map (viewThumbnail model.selectedUrl) model.photos)
-        , img
-            [ class "large"
-            , src (urlPrefix ++ "large/" ++ model.selectedUrl)
-            ]
-            []
+        , viewLarge model.selectedUrl
         ]
 
 
@@ -128,23 +149,57 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SelectByUrl url ->
-            ( { model | selectedUrl = url }, Cmd.none )
+            ( { model | selectedUrl = Just url }, Cmd.none )
 
         SelectByIndex index ->
-            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
+            let
+                newSelectedUrl : Maybe String
+                newSelectedUrl =
+                    model.photos
+                        |> Array.fromList
+                        |> Array.get index
+                        |> Maybe.map .url
+            in
+                ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
 
         SurpriseMe ->
-            ( model, Random.generate SelectByIndex randomPhotoPicker )
+            let
+                randomPhotoPicker =
+                    Random.int 0 (Array.length photoArray - 1)
+            in
+                ( model, Random.generate SelectByIndex randomPhotoPicker )
 
         SetSize thumbnail_size ->
             ( { model | chosenSize = thumbnail_size }, Cmd.none )
+
+        LoadPhotos (Ok responseStr) ->
+            let
+                urls =
+                    String.split "," responseStr
+
+                photos =
+                    List.map Photo urls
+            in
+                ( { model
+                    | photos = photos
+                    , selectedUrl = List.head urls
+                  }
+                , Cmd.none
+                )
+
+        LoadPhotos (Err _) ->
+            ( { model
+                | loadingError = Just "Error ! (Try turning it off and ond again?)"
+              }
+            , Cmd.none
+            )
 
 
 main : Program Never Model Msg
 main =
     Html.program
-        { init = ( initialModel, Cmd.none )
-        , view = view
+        { init = ( initialModel, initialCmd )
+        , view = viewOnError
         , update = update
-        , subscriptions = (\model -> Sub.none)
+        , subscriptions = (\_ -> Sub.none)
         }
