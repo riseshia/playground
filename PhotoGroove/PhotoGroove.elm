@@ -4,6 +4,7 @@ import Html exposing (Html, div, h1, h3, img, text, button, label, input)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
+import Random
 
 
 type alias Photo =
@@ -16,8 +17,10 @@ type ThumbnailSize
     | Large
 
 
-type alias Msg =
-    { operation : String, data : String }
+type Msg
+    = SelectByUrl String
+    | SurpriseMe
+    | SetSize ThumbnailSize
 
 
 type alias Model =
@@ -25,6 +28,11 @@ type alias Model =
     , selectedUrl : String
     , chosenSize : ThumbnailSize
     }
+
+
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+    Random.int 0 (Array.length photoArray - 1)
 
 
 initialModel : Model
@@ -49,6 +57,16 @@ urlPrefix =
     "http://elm-in-action.com/"
 
 
+getPhotoUrl : Int -> String
+getPhotoUrl index =
+    case Array.get index photoArray of
+        Just photo ->
+            photo.url
+
+        Nothing ->
+            ""
+
+
 sizeToString : ThumbnailSize -> String
 sizeToString size =
     case size of
@@ -67,7 +85,7 @@ viewThumbnail selectedUrl thumbnail =
     img
         [ src (urlPrefix ++ thumbnail.url)
         , classList [ ( "selected", selectedUrl == thumbnail.url ) ]
-        , onClick { operation = "SELECT_PHOTO", data = thumbnail.url }
+        , onClick (SelectByUrl thumbnail.url)
         ]
         []
 
@@ -75,7 +93,12 @@ viewThumbnail selectedUrl thumbnail =
 viewSizeChooser : ThumbnailSize -> Html Msg
 viewSizeChooser size =
     label []
-        [ input [ type_ "radio", name "size" ] []
+        [ input
+            [ type_ "radio"
+            , name "size"
+            , onClick (SetSize size)
+            ]
+            []
         , text (sizeToString size)
         ]
 
@@ -85,12 +108,12 @@ view model =
     div [ class "content" ]
         [ h1 [] [ text "Photo Groove" ]
         , button
-            [ onClick { operation = "SURPRISE_ME", data = "" } ]
+            [ onClick SurpriseMe ]
             [ text "Surprise Me!" ]
         , h3 [] [ text "Thumbnail Size:" ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
-        , div [ id "thumbnails" ]
+        , div [ id "thumbnails", class (sizeToString model.chosenSize) ]
             (List.map (viewThumbnail model.selectedUrl) model.photos)
         , img
             [ class "large"
@@ -102,15 +125,15 @@ view model =
 
 update : Msg -> Model -> Model
 update msg model =
-    case msg.operation of
-        "SELECT_PHOTO" ->
-            { model | selectedUrl = msg.data }
+    case msg of
+        SelectByUrl url ->
+            { model | selectedUrl = url }
 
-        "SURPRISE_ME" ->
+        SurpriseMe ->
             { model | selectedUrl = "2.jpeg" }
 
-        _ ->
-            model
+        SetSize thumbnail_size ->
+            { model | chosenSize = thumbnail_size }
 
 
 main =
