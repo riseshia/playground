@@ -1,6 +1,6 @@
 module PhotoGroove exposing (..)
 
-import Html exposing (Html, div, h1, img, text, button)
+import Html exposing (Html, div, h1, h3, img, text, button, label, input)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
@@ -10,12 +10,21 @@ type alias Photo =
     { url : String }
 
 
-type alias Model =
-    { photos : List Photo, selectedUrl : String }
+type ThumbnailSize
+    = Small
+    | Medium
+    | Large
 
 
 type alias Msg =
     { operation : String, data : String }
+
+
+type alias Model =
+    { photos : List Photo
+    , selectedUrl : String
+    , chosenSize : ThumbnailSize
+    }
 
 
 initialModel : Model
@@ -26,6 +35,7 @@ initialModel =
         , { url = "3.jpeg" }
         ]
     , selectedUrl = "1.jpeg"
+    , chosenSize = Medium
     }
 
 
@@ -39,6 +49,19 @@ urlPrefix =
     "http://elm-in-action.com/"
 
 
+sizeToString : ThumbnailSize -> String
+sizeToString size =
+    case size of
+        Small ->
+            "small"
+
+        Medium ->
+            "med"
+
+        Large ->
+            "large"
+
+
 viewThumbnail : String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img
@@ -49,6 +72,14 @@ viewThumbnail selectedUrl thumbnail =
         []
 
 
+viewSizeChooser : ThumbnailSize -> Html Msg
+viewSizeChooser size =
+    label []
+        [ input [ type_ "radio", name "size" ] []
+        , text (sizeToString size)
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "content" ]
@@ -56,6 +87,9 @@ view model =
         , button
             [ onClick { operation = "SURPRISE_ME", data = "" } ]
             [ text "Surprise Me!" ]
+        , h3 [] [ text "Thumbnail Size:" ]
+        , div [ id "choose-size" ]
+            (List.map viewSizeChooser [ Small, Medium, Large ])
         , div [ id "thumbnails" ]
             (List.map (viewThumbnail model.selectedUrl) model.photos)
         , img
