@@ -1,15 +1,20 @@
 module PhotoGroove exposing (..)
 
 import Html exposing (Html, div, h1, h3, img, text, button, label, input, p)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (id, class, classList, src, name, type_, title)
 import Html.Events exposing (onClick)
+import Json.Decode exposing (string, int, list, Decoder)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 import Array exposing (Array)
 import Random
 import Http
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
 
 
 type ThumbnailSize
@@ -23,7 +28,7 @@ type Msg
     | SelectByIndex Int
     | SurpriseMe
     | SetSize ThumbnailSize
-    | LoadPhotos (Result Http.Error String)
+    | LoadPhotos (Result Http.Error (List Photo))
 
 
 type alias Model =
@@ -32,6 +37,14 @@ type alias Model =
     , loadingError : Maybe String
     , chosenSize : ThumbnailSize
     }
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    decode Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "(untitled)"
 
 
 initialModel : Model
@@ -45,8 +58,8 @@ initialModel =
 
 initialCmd : Cmd Msg
 initialCmd =
-    "http://elm-in-action.com/photos/list"
-        |> Http.getString
+    list photoDecoder
+        |> Http.get "http://elm-in-action.com/photos/list.json"
         |> Http.send LoadPhotos
 
 
@@ -87,6 +100,7 @@ viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img
         [ src (urlPrefix ++ thumbnail.url)
+        , title (thumbnail.title ++ " [" ++ toString thumbnail.size ++ " KB]")
         , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
         , onClick (SelectByUrl thumbnail.url)
         ]
@@ -172,20 +186,13 @@ update msg model =
         SetSize thumbnail_size ->
             ( { model | chosenSize = thumbnail_size }, Cmd.none )
 
-        LoadPhotos (Ok responseStr) ->
-            let
-                urls =
-                    String.split "," responseStr
-
-                photos =
-                    List.map Photo urls
-            in
-                ( { model
-                    | photos = photos
-                    , selectedUrl = List.head urls
-                  }
-                , Cmd.none
-                )
+        LoadPhotos (Ok photos) ->
+            ( { model
+                | photos = photos
+                , selectedUrl = Maybe.map .url (List.head photos)
+              }
+            , Cmd.none
+            )
 
         LoadPhotos (Err _) ->
             ( { model
