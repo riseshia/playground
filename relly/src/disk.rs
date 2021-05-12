@@ -3,7 +3,7 @@ use std::{fs::{File, OpenOptions}, path::Path};
 
 pub const PAGE_SIZE: usize = 4096;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct PageId(pub u64);
 
 impl PageId {
