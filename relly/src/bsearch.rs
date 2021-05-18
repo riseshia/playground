@@ -1,6 +1,5 @@
 use std::cmp::Ordering::{self, Greater, Less};
 
-
 /*
  * This is originated in Rust core library:
  * https://github.com/rust-lang/rust/blob/b01026de465d5a5ef51e32c1012c43927d2a111c/library/core/src/slice/mod.rs#L2186
@@ -64,4 +63,3 @@ mod tests {
         assert_eq!(Err(7), binary_search_by(a.len(), |idx| a[idx].cmp(&22)));
     }
 }
-
