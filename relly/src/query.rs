@@ -8,6 +8,9 @@ use crate::tuple;
 pub type Tuple = Vec<Vec<u8>>;
 pub type TupleSlice<'a> = &'a [Vec<u8>];
 
+/// SearchMode for tuple:
+/// - Start
+/// - Key(&[&[u8]])
 pub enum TupleSearchMode<'a> {
     Start,
     Key(&'a [&'a [u8]]),
