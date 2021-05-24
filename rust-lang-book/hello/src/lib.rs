@@ -25,11 +25,11 @@ enum Message {
 
 impl ThreadPool {
     /// New Thread pool
-    /// 
+    ///
     /// size is the maximum number of thread in the pool.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// `new` will be panic when size is 0.
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
@@ -87,7 +87,7 @@ impl Worker {
             loop {
                 let job = receiver.lock().unwrap().recv().unwrap();
 
-                match message { 
+                match message {
                     Message::NewJob(job) => {
                         println!("Worker {} got a job; executing.", id);
 
@@ -99,7 +99,7 @@ impl Worker {
                         break;
                     }
                 }
-                
+
             }
         });
 
