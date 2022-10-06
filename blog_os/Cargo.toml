@@ -16,6 +16,10 @@ uart_16550 = "0.2.0"
 name = "should_panic"
 harness = false
 
+[[test]]
+name = "stack_overflow"
+harness = false
+
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
