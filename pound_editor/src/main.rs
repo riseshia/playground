@@ -1,6 +1,5 @@
-use crossterm::terminal;
-use std::io;
-use std::io::Read;
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use crossterm::{event, terminal};
 
 struct CleanUp;
 
@@ -15,6 +14,19 @@ fn main() {
 
     terminal::enable_raw_mode().expect("Could not turn on Raw mode");
 
-    let mut buf = [0; 1];
-    while io::stdin().read(&mut buf).expect("Failed to read line") == 1 && buf != [b'q'] {}
+    loop {
+        if let Event::Key(event) = event::read().expect("Failed to read line") {
+            match event {
+                KeyEvent {
+                    code: KeyCode::Char('q'),
+                    modifiers: event::KeyModifiers::NONE,
+                    ..
+                } => break,
+                _ => {
+                    //todo
+                }
+            }
+            println!("{:?}\r", event);
+        }
+    }
 }
