@@ -18,7 +18,7 @@ fn main() -> crossterm::Result<()> {
     loop {
         if event::poll(Duration::from_millis(1000))? {
             if let Event::Key(event) = event::read()? {
-                match event {
+                #[allow(clippy::single_match)] match event {
                     KeyEvent {
                         code: KeyCode::Char('q'),
                         modifiers: event::KeyModifiers::NONE,
