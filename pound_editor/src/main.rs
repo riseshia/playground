@@ -15,6 +15,38 @@ impl Drop for CleanUp {
     }
 }
 
+struct CursorController {
+    cursor_x: usize,
+    cursor_y: usize,
+}
+
+impl CursorController {
+    fn new() -> CursorController {
+        Self {
+            cursor_x: 0,
+            cursor_y: 0,
+        }
+    }
+
+    fn move_cursor(&mut self, direction: char) {
+        match direction {
+            'w' => {
+                self.cursor_y -= 1;
+            }
+            'a' => {
+                self.cursor_x -= 1;
+            }
+            's' => {
+                self.cursor_y += 1;
+            }
+            'd' => {
+                self.cursor_x += 1;
+            }
+            _ => unimplemented!(),
+        }
+    }
+}
+
 struct EditorContents {
     content: String,
 }
@@ -57,6 +89,7 @@ impl io::Write for EditorContents {
 struct Output {
     win_size: (usize, usize),
     editor_contents: EditorContents,
+    cursor_controller: CursorController,
 }
 
 impl Output {
@@ -68,6 +101,7 @@ impl Output {
         Self {
             win_size,
             editor_contents: EditorContents::new(),
+            cursor_controller: CursorController::new(),
         }
     }
 
@@ -117,12 +151,20 @@ impl Output {
             cursor::MoveTo(0, 0)
         )?;
         self.draw_rows();
+
+        let cursor_x = self.cursor_controller.cursor_x;
+        let cursor_y = self.cursor_controller.cursor_y;
+
         queue!(
             self.editor_contents,
-            cursor::MoveTo(0, 0),
+            cursor::MoveTo(cursor_x as u16, cursor_y as u16),
             cursor::Show
         )?;
         self.editor_contents.flush()
+    }
+
+    fn move_cursor(&mut self, direction: char) {
+        self.cursor_controller.move_cursor(direction);
     }
 }
 
@@ -153,13 +195,18 @@ impl Editor {
         }
     }
 
-    fn process_keypress(&self) -> crossterm::Result<bool> {
+    fn process_keypress(&mut self) -> crossterm::Result<bool> {
         match self.reader.read_key()? {
             KeyEvent {
                 code: KeyCode::Char('q'),
                 modifiers: event::KeyModifiers::CONTROL,
                 ..
             } => return Ok(false),
+            KeyEvent {
+                code: KeyCode::Char(val @ ('w' | 'a' | 's' | 'd')),
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => self.output.move_cursor(val),
             _ => {}
         }
         Ok(true)
