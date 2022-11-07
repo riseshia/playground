@@ -1,6 +1,6 @@
 use crossterm::terminal;
 
-use pound::editor::{CleanUp, Editor};
+use pound::{CleanUp, Editor};
 
 fn main() -> crossterm::Result<()> {
     let _clean_up = CleanUp;
