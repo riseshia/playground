@@ -63,6 +63,13 @@ impl CursorController {
             }
             _ => unimplemented!(),
         }
+
+         let row_len = if self.cursor_y < number_of_rows {
+            editor_rows.get_row(self.cursor_y).len()
+        } else {
+            0
+        };
+        self.cursor_x = cmp::min(self.cursor_x, row_len);
     }
 
     fn scroll(&mut self) {
