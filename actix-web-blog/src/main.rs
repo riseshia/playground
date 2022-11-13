@@ -17,6 +17,24 @@ async fn create_post(
     Ok(HttpResponse::Ok().json(post))
 }
 
+#[actix_web::get("/posts")]
+async fn list_posts(
+    repo: web::Data<Repository>,
+) -> Result<HttpResponse, ApiError> {
+    let res = repo.list_posts().await?;
+    Ok(HttpResponse::Ok().json(res))
+}
+
+#[actix_web::get("/posts/{id}")]
+async fn get_post(
+    repo: web::Data<Repository>,
+    path: web::Path<i32>,
+) -> Result<HttpResponse, ApiError> {
+    let id = path.into_inner();
+    let res = repo.get_post(id).await?;
+    Ok(HttpResponse::Ok().json(res))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()>{
     let database_url = std::env::var("DATABASE_URL").unwrap();
@@ -26,6 +44,8 @@ async fn main() -> std::io::Result<()>{
         App::new()
             .app_data(repo.clone())
             .service(create_post)
+            .service(list_posts)
+            .service(get_post)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
