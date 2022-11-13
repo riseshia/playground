@@ -3,6 +3,8 @@ mod repository;
 mod schema;
 
 use actix_web::{web, App, HttpResponse, HttpServer};
+use actix_web::middleware::{Logger, NormalizePath};
+
 use error::ApiError;
 use repository::{NewPost, Repository};
 
@@ -37,12 +39,16 @@ async fn get_post(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()>{
+    tracing_subscriber::fmt::init();
+
     let database_url = std::env::var("DATABASE_URL").unwrap();
     let repo = web::Data::new(Repository::new(&database_url));
 
     HttpServer::new(move || {
         App::new()
             .app_data(repo.clone())
+            .wrap(Logger::default())
+            .wrap(NormalizePath::trim())
             .service(create_post)
             .service(list_posts)
             .service(get_post)
