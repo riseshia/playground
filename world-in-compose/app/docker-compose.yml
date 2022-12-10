@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    networks:
+      - all-in-one
+
+networks:
+  all-in-one:
+    external: true

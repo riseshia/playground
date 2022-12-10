@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "4567:4567"
+    networks:
+      - all-in-one
+
+networks:
+  all-in-one:
+    external: true
