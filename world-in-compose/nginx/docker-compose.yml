@@ -12,9 +12,14 @@ services:
       - all-in-one
 
   proxy:
+    image: envoyproxy/envoy-dev:latest
+    networks:
+      - all-in-one
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+
+  fallback:
     build: .
-    environment:
-      - SERVER_NAME=localhost
     networks:
       - all-in-one
 

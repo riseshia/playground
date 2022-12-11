@@ -2,8 +2,8 @@ FROM ruby:3.1
 
 WORKDIR /app
 
-COPY config.ru /app
-RUN gem install rack rack-reverse-proxy rackup
-EXPOSE 9292
+COPY fallback.rb /app
+RUN gem install sinatra puma
+EXPOSE 4567
 
-CMD ["rackup", "--host", "0.0.0.0"]
+CMD ["ruby", "fallback.rb"]

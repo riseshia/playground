@@ -1,0 +1,97 @@
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 10000
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          # scheme_header_transformation:
+          #   scheme_to_overwrite: https
+          stat_prefix: ingress_http
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                  headers:
+                  - name: "x-upstream-service"
+                    string_match:
+                      exact: "app"
+                route:
+                  # host_rewrite_literal: www.envoyproxy.io
+                  cluster: app_cluster
+              - match:
+                  prefix: "/"
+                  headers:
+                  - name: "x-upstream-service"
+                    string_match:
+                      exact: "frontend"
+                route:
+                  # host_rewrite_literal: www.envoyproxy.io
+                  cluster: frontend_cluster
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: app_cluster
+    connect_timeout: 2s
+    type: STRICT_DNS
+    dns_lookup_family: V4_ONLY
+    dns_failure_refresh_rate:
+      base_interval: 1s
+      max_interval: 2s
+    wait_for_warm_on_init: false
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: app_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: app
+                port_value: 4567
+  - name: frontend_cluster
+    connect_timeout: 1s
+    type: STRICT_DNS
+    dns_lookup_family: V4_ONLY
+    dns_failure_refresh_rate:
+      base_interval: 1s
+      max_interval: 2s
+    wait_for_warm_on_init: false
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: frontend_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: frontend
+                port_value: 4567
+    # transport_socket:
+    #   name: envoy.transport_sockets.tls
+    #   typed_config:
+    #     "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+    #     sni: www.envoyproxy.io
