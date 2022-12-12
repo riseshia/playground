@@ -1,6 +1,6 @@
 use serde_json::{Result, Value};
 
-fn main() -> Result<()> {
+fn parse_json() -> Value {
     let data = r#"
     {
         "name": "John Doe",
@@ -12,7 +12,7 @@ fn main() -> Result<()> {
         ]
     }"#;
 
-    let v: Value = serde_json::from_str(data)?;
+    let v: Value = serde_json::from_str(data).expect("Invalid JSON str");
 
     println!("Please call {} at the number {}", v["name"], v["phones"][0]);
 
@@ -20,6 +20,12 @@ fn main() -> Result<()> {
         Some(phone) => println!("The second phone number is: {}", phone),
         None => println!("There is no second phone number."),
     }
+
+    v
+}
+
+fn main() -> Result<()> {
+    let _json = parse_json();
 
     Ok(())
 }
