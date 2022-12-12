@@ -3,10 +3,42 @@
 version = 3
 
 [[package]]
+name = "cc"
+version = "1.0.77"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9f73505338f7d905b19d18738976aae232eb46b8efc15554ffc56deb5d9ebe4"
+
+[[package]]
 name = "itoa"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4217ad341ebadf8d8e724e264f13e593e0648f5b3e94b3896a5df283be015ecc"
+
+[[package]]
+name = "jsonnet-rs"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82b396bdfc3ae94965555c9ec3efa2214e5f3921545a943ef9fc9873ff5e4723"
+dependencies = [
+ "jsonnet-sys",
+ "libc",
+]
+
+[[package]]
+name = "jsonnet-sys"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02347cbdf34234f30f0d92f0f8f678a15883bd5e1e4b3def4ed4a14f691d9add"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.138"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db6d7e329c562c5dfab7a46a2afabc8b987ab9a4834c9d1ca04dc54c1546cef8"
 
 [[package]]
 name = "proc-macro2"
@@ -30,6 +62,7 @@ dependencies = [
 name = "rust-json-eval"
 version = "0.1.0"
 dependencies = [
+ "jsonnet-rs",
  "serde",
  "serde_json",
 ]
