@@ -10,10 +10,10 @@ pub async fn func(request: LambdaEvent<Request>) -> Result<Value, Error> {
 
 #[derive(Deserialize, Serialize)]
 pub struct QueryParams {
-    pub user_id: String,
-    pub channel_id: String,
-    pub command: String,
-    pub response_url: String,
+    user_id: String,
+    channel_id: String,
+    command: String,
+    response_url: String,
 }
 
 impl Default for QueryParams {
@@ -30,15 +30,15 @@ impl Default for QueryParams {
 #[derive(Deserialize, Serialize)]
 pub struct Request {
     #[serde(alias = "rawPath")]
-    pub raw_path: String,
-    pub headers: RequestHeader,
-    pub body: QueryParams,
+    raw_path: String,
+    headers: RequestHeader,
+    body: QueryParams,
     #[serde(default)]
     #[serde(alias = "isBase64Encoded")]
-    pub is_base64_encoded: bool,
+    is_base64_encoded: bool,
     #[serde(default)]
     #[serde(alias = "skipRequestVerify")]
-    pub skip_request_verify: bool,
+    skip_request_verify: bool,
 }
 
 impl Default for Request {
@@ -56,9 +56,9 @@ impl Default for Request {
 #[derive(Deserialize, Serialize)]
 pub struct RequestHeader {
     #[serde(alias = "x-slack-signature")]
-    pub x_slack_signature: String,
+    x_slack_signature: String,
     #[serde(alias = "x-slack-request-timestamp")]
-    pub x_slack_request_timestamp: i32,
+    x_slack_request_timestamp: i32,
 }
 
 impl Default for RequestHeader {
