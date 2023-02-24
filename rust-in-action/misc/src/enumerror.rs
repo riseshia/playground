@@ -19,10 +19,22 @@ impl fmt::Display for UpstreamError {
 
 impl std::error::Error for UpstreamError {}
 
-fn main() -> Result<(), UpstreamError> {
-    let _f = File::open("invisible.txt").map_err(UpstreamError::IO)?;
+impl From<io::Error> for UpstreamError {
+    fn from(error: io::Error) -> Self {
+        UpstreamError::IO(error)
+    }
+}
 
-    let _localhost: Ipv6Addr = "::1".parse().map_err(UpstreamError::Parsing)?;
+impl From<net::AddrParseError> for UpstreamError {
+    fn from(error: net::AddrParseError) -> Self {
+        UpstreamError::Parsing(error)
+    }
+}
+
+fn main() -> Result<(), UpstreamError> {
+    let _f = File::open("invisible.txt")?;
+
+    let _localhost: Ipv6Addr = "::1".parse()?;
 
     Ok(())
 }
