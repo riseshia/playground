@@ -14,8 +14,9 @@ import {
   useToast,
   UseToastOptions,
 } from '@chakra-ui/react'
-import { CheckCircleIcon, QuestionIcon, WarningIcon } from '@chakra-ui/icons'
+import { CheckCircleIcon, DeleteIcon, QuestionIcon, WarningIcon } from '@chakra-ui/icons'
 import { useEffect, useState } from 'react'
+import React from 'react'
 
 type Project = {
   name: string,
@@ -64,6 +65,14 @@ function stopProject(projectName: string) {
 function restartProject(projectName: string) {
   return fetch('/api/projects/restart', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: projectName })
+  })
+}
+
+function deleteProject(projectName: string) {
+  return fetch('/api/projects', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: projectName })
   })
@@ -164,6 +173,39 @@ export default function Projects() {
         .then(projects => setProjects(projects))
   }
 
+  const handleClickDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (!confirm("Are you sure to delete this project?")) {
+      return
+    }
+
+    const projectName = event.currentTarget.value
+      deleteProject(projectName)
+        .then((res) => res.json())
+        .then((json) => {
+          let toastConfig: UseToastOptions;
+          if (json.error) {
+            toastConfig = {
+              title: 'Project deletion failed',
+              description: `Error: ${json.error}`,
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            }
+          } else {
+            toastConfig = {
+              title: 'Project deleted',
+              description: `Project ${projectName} is deleted`,
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            }
+          }
+          toast(toastConfig)
+        })
+        .then(() => fetchProjects())
+        .then(projects => setProjects(projects))
+  }
+
   const actionBtnFor = (project: Project) => {
     if (project.status == 'running') {
       return (
@@ -199,7 +241,12 @@ export default function Projects() {
             {projects.map(project => (
               <Tr key={project.name}>
                 <Td>{iconFor(project.status)}</Td>
-                <Td>{project.name}</Td>
+                <Td>
+                  {project.name}
+                  <Button colorScheme='red' size='xs' ml='8px' onClick={handleClickDelete} value={project.name}>
+                    <DeleteIcon />
+                  </Button>
+                </Td>
                 <Td>{project.status}</Td>
                 <Td>{project.path ?? 'Not registered'}</Td>
                 <Td>
