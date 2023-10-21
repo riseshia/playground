@@ -12,6 +12,7 @@ import {
   Heading,
   Button,
   useToast,
+  UseToastOptions,
 } from '@chakra-ui/react'
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from '@chakra-ui/icons'
 import { useEffect, useState } from 'react'
@@ -79,13 +80,28 @@ export default function Projects() {
   const handleClickStart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       startProject(projectName)
-        .then(() => toast({
-          title: 'Project start signal sent',
-          description: `Project ${projectName} is starting`,
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        }))
+        .then((res) => res.json())
+        .then((json) => {
+          let toastConfig: UseToastOptions;
+          if (json.error) {
+            toastConfig = {
+              title: 'Project start signal failed',
+              description: `Project ${projectName} failed to start: ${json.error}`,
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            }
+          } else {
+            toastConfig = {
+              title: 'Project start signal sent',
+              description: `Project ${projectName} is starting`,
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            }
+          }
+          toast(toastConfig)
+        })
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
@@ -93,13 +109,28 @@ export default function Projects() {
   const handleClickRestart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       restartProject(projectName)
-        .then(() => toast({
-          title: 'Project restart signal sent',
-          description: `Project ${projectName} is restarting`,
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        }))
+        .then((res) => res.json())
+        .then((json) => {
+          let toastConfig: UseToastOptions;
+          if (json.error) {
+            toastConfig = {
+              title: 'Project restart signal failed',
+              description: `Project ${projectName} failed to restart: ${json.error}`,
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            }
+          } else {
+            toastConfig = {
+              title: 'Project restart signal sent',
+              description: `Project ${projectName} is restarting`,
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            }
+          }
+          toast(toastConfig)
+        })
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
@@ -107,13 +138,28 @@ export default function Projects() {
   const handleClickStop = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       stopProject(projectName)
-        .then(() => toast({
-          title: 'Project stop signal sent',
-          description: `Project ${projectName} is stopping`,
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        }))
+        .then((res) => res.json())
+        .then((json) => {
+          let toastConfig: UseToastOptions;
+          if (json.error) {
+            toastConfig = {
+              title: 'Project stop signal failed',
+              description: `Project ${projectName} failed to stop: ${json.error}`,
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            }
+          } else {
+            toastConfig = {
+              title: 'Project stop signal sent',
+              description: `Project ${projectName} is stopping`,
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            }
+          }
+          toast(toastConfig)
+        })
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
