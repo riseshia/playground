@@ -13,6 +13,7 @@ import {
   Button,
 } from '@chakra-ui/react'
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from '@chakra-ui/icons'
+import { useEffect, useState } from 'react'
 
 type Project = {
   name: string,
@@ -20,16 +21,16 @@ type Project = {
   path?: string,
 }
 
-function useLoaderData() {
-  // TODO: fetch projects from API
-  const projects: Project[] = [
-    { name: 'A', status: 'running', path: '/repos/a' },
-    { name: 'B', status: 'running', path: '/repos/b' },
-    { name: 'C', status: 'exited', path: '/repos/c' },
-    { name: 'D', status: 'unknown', path: undefined },
-  ]
+type ProjectsResponse = {
+  data: {
+    projects: Project[],
+  },
+}
 
-  return { projects }
+async function fetchProjects(): Promise<Project[]> {
+  const res = await fetch('/api/projects')
+  const json = await res.json() as ProjectsResponse
+  return json.data.projects
 }
 
 function iconFor(status: string) {
@@ -70,7 +71,11 @@ function restartProject(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) 
 }
 
 export default function Projects() {
-  const { projects } = useLoaderData() as { projects: Project[] }
+  const [projects, setProjects] = useState<Project[]>([])
+
+  useEffect(() => {
+    fetchProjects().then(projects => setProjects(projects))
+  }, [])
 
   return (
     <>
