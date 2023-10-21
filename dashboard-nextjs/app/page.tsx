@@ -11,6 +11,7 @@ import {
   Td,
   Heading,
   Button,
+  useToast,
 } from '@chakra-ui/react'
 import { CheckCircleIcon, QuestionIcon, WarningIcon } from '@chakra-ui/icons'
 import { useEffect, useState } from 'react'
@@ -69,6 +70,7 @@ function restartProject(projectName: string) {
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
+  const toast = useToast()
 
   useEffect(() => {
     fetchProjects().then(projects => setProjects(projects))
@@ -77,6 +79,13 @@ export default function Projects() {
   const handleClickStart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       startProject(projectName)
+        .then(() => toast({
+          title: 'Project start signal sent',
+          description: `Project ${projectName} is starting`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        }))
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
@@ -84,6 +93,13 @@ export default function Projects() {
   const handleClickRestart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       restartProject(projectName)
+        .then(() => toast({
+          title: 'Project restart signal sent',
+          description: `Project ${projectName} is restarting`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        }))
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
@@ -91,6 +107,13 @@ export default function Projects() {
   const handleClickStop = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const projectName = event.currentTarget.value
       stopProject(projectName)
+        .then(() => toast({
+          title: 'Project stop signal sent',
+          description: `Project ${projectName} is stopping`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        }))
         .then(() => fetchProjects())
         .then(projects => setProjects(projects))
   }
