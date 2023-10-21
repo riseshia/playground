@@ -182,7 +182,7 @@ export default function Projects() {
   return (
     <>
       <Box p={4}>
-        <Heading as='h2'>Projects</Heading>
+        <Heading as='h1' size='md'>Compose Projects</Heading>
       </Box>
       <TableContainer p={4}>
         <Table variant='simple'>
