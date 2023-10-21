@@ -40,7 +40,7 @@ function App() {
             <Box fontWeight='bold'>Compose</Box>
             <HStack as={'nav'} spacing={4} display={{ base: 'none', md: 'flex' }}>
               {Links.map((link) => (
-                <Link to={link.path}>{link.name}</Link>
+                <Link key={link.name} to={link.path}>{link.name}</Link>
               ))}
             </HStack>
           </HStack>
