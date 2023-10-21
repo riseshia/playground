@@ -43,31 +43,28 @@ function iconFor(status: string) {
   }
 }
 
-function actionBtnFor(project: Project) {
-  if (project.status == 'running') {
-    return (
-      <>
-        <Button colorScheme='red' size='xs' mr='4px' onClick={stopProject} value={project.name}>Stop</Button>
-        <Button colorScheme='orange' size='xs' onClick={restartProject} value={project.name}>Restart</Button>
-      </>
-    )
-  } else if (project.status == 'exited') {
-    return <Button colorScheme='blue' size='xs' onClick={startProject} value={project.name}>Start</Button>
-  } else {
-    return null
-  }
+function startProject(projectName: string) {
+  return fetch('/api/projects/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: projectName })
+  })
 }
 
-function startProject(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  console.log(event.currentTarget.value)
+function stopProject(projectName: string) {
+  return fetch('/api/projects/stop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: projectName })
+  })
 }
 
-function stopProject(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  console.log(event.currentTarget.value)
-}
-
-function restartProject(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  console.log(event.currentTarget.value)
+function restartProject(projectName: string) {
+  return fetch('/api/projects/restart', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: projectName })
+  })
 }
 
 export default function Projects() {
@@ -76,6 +73,42 @@ export default function Projects() {
   useEffect(() => {
     fetchProjects().then(projects => setProjects(projects))
   }, [])
+
+  const handleClickStart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const projectName = event.currentTarget.value
+      startProject(projectName)
+        .then(() => fetchProjects())
+        .then(projects => setProjects(projects))
+  }
+
+  const handleClickRestart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const projectName = event.currentTarget.value
+      restartProject(projectName)
+        .then(() => fetchProjects())
+        .then(projects => setProjects(projects))
+  }
+
+  const handleClickStop = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const projectName = event.currentTarget.value
+      stopProject(projectName)
+        .then(() => fetchProjects())
+        .then(projects => setProjects(projects))
+  }
+
+  const actionBtnFor = (project: Project) => {
+    if (project.status == 'running') {
+      return (
+        <>
+          <Button colorScheme='red' size='xs' mr='4px' onClick={handleClickStop} value={project.name}>Stop</Button>
+          <Button colorScheme='orange' size='xs' onClick={handleClickRestart} value={project.name}>Restart</Button>
+        </>
+      )
+    } else if (project.status == 'exited') {
+      return <Button colorScheme='blue' size='xs' onClick={handleClickStart} value={project.name}>Start</Button>
+    } else {
+      return null
+    }
+  }
 
   return (
     <>
