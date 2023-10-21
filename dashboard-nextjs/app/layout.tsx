@@ -22,7 +22,6 @@ type Link = {
 }
 
 const links: Link[] = [
-  { name: 'Projects', path: '/projects' },
   { name: 'Upstreams', path: '/upstreams' },
 ]
 
@@ -51,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 />
 
                 <HStack spacing={8} alignItems={'center'}>
-                  <Box fontWeight='bold'>Compose</Box>
+                  <Box fontWeight='bold'><Link href='/'>Compose</Link></Box>
 
                   <HStack as={'nav'} spacing={4} display={{ base: 'none', md: 'flex' }}>
                     {links.map((link) => (
