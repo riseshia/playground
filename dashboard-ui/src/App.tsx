@@ -12,8 +12,6 @@ import {
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import { Link, Outlet } from 'react-router-dom'
 
-import './App.css'
-
 type Link = {
   name: string,
   path: string,
