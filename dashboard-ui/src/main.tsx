@@ -5,7 +5,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 import App from './App.tsx'
 import ErrorPage from './error-page.tsx'
-import Projects from './routes/projects.tsx'
+import Projects, { loader as projectsLoader } from './routes/projects.tsx'
 import Upstreams from './routes/upstreams.tsx'
 
 const router = createBrowserRouter([
@@ -15,12 +15,14 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        element: <Projects />,
         index: true,
+        element: <Projects />,
+        loader: projectsLoader,
       },
       {
         path: "/projects",
         element: <Projects />,
+        loader: projectsLoader,
       },
       {
         path: "/upstreams",
