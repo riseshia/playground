@@ -1,5 +1,7 @@
 import { execSync } from 'child_process'
 
+import { Project } from '../../../../types/common'
+
 function fetchProjectsFromDocker(): Project[] {
   const stdout = execSync('docker compose ls --all --format=json').toString()
 
@@ -14,12 +16,6 @@ function fetchProjectsFromDocker(): Project[] {
 
 function restartProject(path: string) {
   execSync(`docker compose -f ${path} up -d`)
-}
-
-type Project = {
-  name: string,
-  status: string,
-  path?: string,
 }
 
 export async function POST(request: Request) {

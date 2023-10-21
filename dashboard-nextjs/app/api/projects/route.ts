@@ -1,10 +1,6 @@
 import { execSync } from 'child_process'
 
-type Project = {
-  name: string,
-  status: string,
-  path?: string,
-}
+import { Project } from '../../../types/common'
 
 const defaultProjects: Project[] = [
   { name: 'A', status: 'running', path: '/repos/a' },

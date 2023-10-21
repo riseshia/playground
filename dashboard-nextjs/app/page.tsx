@@ -18,11 +18,7 @@ import { CheckCircleIcon, DeleteIcon, QuestionIcon, WarningIcon } from '@chakra-
 import { useEffect, useState } from 'react'
 import React from 'react'
 
-type Project = {
-  name: string,
-  status: string,
-  path?: string,
-}
+import { Project } from '../types/common'
 
 type ProjectsResponse = {
   data: {
