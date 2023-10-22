@@ -244,7 +244,7 @@ export default function Projects() {
                   </Button>
                 </Td>
                 <Td>{project.status}</Td>
-                <Td>{project.path ?? 'Not registered'}</Td>
+                <Td>{project.configPath ?? 'Not registered'}</Td>
                 <Td>
                   {actionBtnFor(project)}
                 </Td>

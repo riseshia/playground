@@ -28,8 +28,8 @@ export async function POST(request: Request) {
       return project.name === projectName
     })
 
-    if (project && project.path) {
-      stopProject(project.path)
+    if (project && project.configPath) {
+      stopProject(project.configPath)
       return Response.json({ data: { status: 'ok' } })
     } else {
       return Response.json({ error: 'project not found' })
