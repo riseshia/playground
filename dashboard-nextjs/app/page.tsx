@@ -220,7 +220,7 @@ export default function Projects() {
   return (
     <>
       <Box p={4}>
-        <Heading as='h1' size='md'>Compose Projects</Heading>
+        <Heading as='h1' size='md'>Docker compose projects</Heading>
       </Box>
       <TableContainer p={4}>
         <Table variant='simple'>
