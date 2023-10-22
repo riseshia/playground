@@ -210,8 +210,20 @@ export default function Projects() {
           <Button colorScheme='orange' size='xs' onClick={handleClickRestart} value={project.name}>Restart</Button>
         </>
       )
-    } else if (project.status == 'exited') {
+    } else if (project.status == 'exited' && project.configPath) {
       return <Button colorScheme='blue' size='xs' onClick={handleClickStart} value={project.name}>Start</Button>
+    } else {
+      return null
+    }
+  }
+
+  const deleteBtnFor = (project: Project) => {
+    if (project.status == 'exited' && project.configPath) {
+      return (
+        <Button colorScheme='red' size='xs' ml='8px' onClick={handleClickDelete} value={project.name}>
+          <DeleteIcon />
+        </Button>
+      )
     } else {
       return null
     }
@@ -239,14 +251,12 @@ export default function Projects() {
                 <Td>{iconFor(project.status)}</Td>
                 <Td>
                   {project.name}
-                  <Button colorScheme='red' size='xs' ml='8px' onClick={handleClickDelete} value={project.name}>
-                    <DeleteIcon />
-                  </Button>
                 </Td>
                 <Td>{project.status}</Td>
                 <Td>{project.configPath ?? 'Not registered'}</Td>
                 <Td>
                   {actionBtnFor(project)}
+                  {deleteBtnFor(project)}
                 </Td>
               </Tr>
             ))}
