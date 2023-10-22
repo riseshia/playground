@@ -1,40 +1,20 @@
-import { execSync } from 'child_process'
-
-import { Project } from '../../../../types/common'
-
-function fetchProjectsFromDocker(): Project[] {
-  const stdout = execSync('docker compose ls --all --format=json').toString()
-
-  return JSON.parse(stdout).map((project: any) => {
-    return {
-      name: project.Name,
-      status: project.Status.split('(')[0],
-      path: project.ConfigFiles,
-    }
-  })
-}
-
-function restartProject(path: string) {
-  execSync(`docker compose -f ${path} up -d`)
-}
+import { Projects } from '../../../models/Projects'
 
 export async function POST(request: Request) {
-  const params = await request.json()
-  const projectName = params.name
-
   try {
-    const projects = fetchProjectsFromDocker()
-    const project = projects.find((project: Project) => {
-      return project.name === projectName
-    })
+    const params = await request.json()
+    const projectName = params.name
+
+    const project = await Projects.findByName(projectName)
 
     if (project && project.configPath) {
-      restartProject(project.configPath)
+      Projects.restart(project)
       return Response.json({ data: { status: 'ok' } })
+    } else if (project) {
+      return Response.json({ error: `project '${projectName}' found, but don't know where it is` })
     } else {
-      return Response.json({ error: 'project not found' })
+      return Response.json({ error: `project '${projectName}' not found` })
     }
-
   } catch (e: any) {
     return Response.json({ error: e.message })
   }

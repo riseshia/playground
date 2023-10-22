@@ -1,0 +1,6 @@
+[
+  {"name":"A","status":"exited"},
+  {"name":"B","status":"exited"},
+  {"name":"C","status":"exited"},
+  {"name":"deploy-command","status":"exited"}
+]
