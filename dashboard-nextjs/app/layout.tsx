@@ -5,6 +5,8 @@ import React from 'react'
 import Link from 'next/link'
 
 import {
+  Alert,
+  AlertIcon,
   Box,
   ChakraProvider,
   Flex,
@@ -27,6 +29,7 @@ const links: Link[] = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const isOutdated = false
 
   return (
     <html>
@@ -57,6 +60,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       <Link key={link.name} href={link.path}>{link.name}</Link>
                     ))}
                   </HStack>
+
+                  {isOutdated ? (
+                    <Alert status='warning'>
+                      <AlertIcon />
+                      Seems compose is updated, plz update
+                    </Alert>
+                  ) : null}
                 </HStack>
               </Flex>
 
