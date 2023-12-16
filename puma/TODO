@@ -4,4 +4,3 @@ lib/puma/log_writer
 lib/puma/plugin
 lib/puma/dsl
 lib/rack/builder
-lib/commonlogger
