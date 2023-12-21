@@ -1,3 +1,7 @@
-lib/puma/launcher
 lib/puma/dsl
+lib/puma/events
+lib/puma/cluster
+lib/puma/single
+lib/puma/binder
 lib/rack/builder
+lib/puma/launcher/bundle_pruner

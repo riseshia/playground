@@ -62,7 +62,7 @@ module Puma
     end
   end
 
-  class Configuratoin
+  class Configuration
     DEFAULTS = {
       auto_trim_time: 30,
       binds: ['tcp://0.0.0.0:9292'.freeze],
