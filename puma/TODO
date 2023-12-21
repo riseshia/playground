@@ -1,5 +1,4 @@
 lib/puma/dsl
-lib/puma/events
 lib/puma/cluster
 lib/puma/single
 lib/puma/binder
