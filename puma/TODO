@@ -1,4 +1,3 @@
-lib/puma/dsl
 lib/puma/cluster
 lib/puma/single
 lib/puma/binder
