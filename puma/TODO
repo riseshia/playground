@@ -1,3 +1,2 @@
 lib/puma/cluster
 lib/puma/single
-lib/puma/binder
