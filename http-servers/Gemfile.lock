@@ -1,0 +1,19 @@
+GIT
+  remote: https://github.com/digital-fabric/libev_scheduler.git
+  revision: 0406cb5d86a242d49ff8a379ac119f1e062cec9f
+  specs:
+    libev_scheduler (0.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  libev_scheduler!
+
+BUNDLED WITH
+   2.6.0.dev
