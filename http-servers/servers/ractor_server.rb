@@ -18,6 +18,8 @@ class RactorServer
   end
 
   def start
+    write_pid
+
     # the queue is going to be used to
     # fairly dispatch incoming requests,
     # we pass the queue into workers
@@ -70,5 +72,9 @@ class RactorServer
     end
 
     Ractor.select(listener)
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end

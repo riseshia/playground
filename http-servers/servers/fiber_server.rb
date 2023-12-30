@@ -17,6 +17,7 @@ class FiberServer
   end
 
   def start
+    write_pid
     # Fibers are not going to work without a scheduler.
     # A scheduler is on for a current thread.
     # Some scheduler choices:
@@ -48,5 +49,9 @@ class FiberServer
         end
       end
     end
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end

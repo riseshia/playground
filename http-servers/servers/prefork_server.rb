@@ -17,6 +17,8 @@ class PreforkServer
   end
 
   def start
+    write_pid
+
     socket = TCPServer.new(HOST, PORT)
 
     workers = []
@@ -37,5 +39,9 @@ class PreforkServer
     end
 
     workers.each { |worker| Process.waitpid(worker) }
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end

@@ -16,6 +16,8 @@ class SingleThreadedServer
   end
 
   def start
+    write_pid
+
     socket = TCPServer.new(HOST, PORT)
 
     loop do
@@ -28,5 +30,9 @@ class SingleThreadedServer
     ensure
       conn&.close
     end
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end

@@ -19,6 +19,8 @@ class PreforkMultiThreadedServer
   end
 
   def start
+    write_pid
+
     socket = TCPServer.new(HOST, PORT)
 
     workers = []
@@ -43,5 +45,9 @@ class PreforkMultiThreadedServer
     end
 
     workers.each { |worker| Process.waitpid(worker) }
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end

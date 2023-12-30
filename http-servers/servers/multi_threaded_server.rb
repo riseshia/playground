@@ -18,6 +18,8 @@ class MultiThreadedServer
   end
 
   def start
+    write_pid
+
     pool = ThreadPool.new(size: WORKERS_COUNT)
     socket = TCPServer.new(HOST, PORT)
 
@@ -38,5 +40,9 @@ class MultiThreadedServer
     end
   ensure
     pool&.shutdown
+  end
+
+  private def write_pid
+    File.write('tmp/server.pid', Process.pid)
   end
 end
