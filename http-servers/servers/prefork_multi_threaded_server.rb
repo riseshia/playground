@@ -44,6 +44,12 @@ class PreforkMultiThreadedServer
       end
     end
 
+    trap(:TERM) do
+      workers.each { |worker| Process.kill(:TERM, worker) }
+    end
+    trap(:INT) do
+      workers.each { |worker| Process.kill(:TERM, worker) }
+    end
     workers.each { |worker| Process.waitpid(worker) }
   end
 
