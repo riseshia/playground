@@ -4,25 +4,47 @@ set -e
 
 export HOST=127.0.0.1
 export PORT=3000
-export PROCESS_COUNT=2
-export WORKER_PER_PROCESS_COUNT=2
-export RUBY_MAX_CPU=$PROCESS_COUNT
+export PROCESS_COUNT=1
+export MAX_PROCESS_NUM=2
+export WORKER_PER_PROCESS_COUNT=1
+export MAX_WORKER_NUM=32
 
-servers="fiber single_threaded multi_threaded prefork prefork_multi_threaded ractor"
+rm reports/*.json || true
+
 # servers="fiber" segfault with high traffic
-servers="single_threaded multi_threaded prefork prefork_multi_threaded ractor"
-servers="single_threaded multi_threaded"
+# servers="single_threaded multi_threaded prefork prefork_multi_threaded ractor"
 
-for server in $servers; do
-  echo "Benchmarking $server (process: $PROCESS_COUNT, worker per process: $WORKER_PER_PROCESS_COUNT)"
-  export SERVER=$server
+# single_threaded
+# SERVER=single_threaded ./benchmark.sh
 
-  bundle exec ruby start.rb &
+# multi_threaded
+# for worker_num in $(seq 8 8 $MAX_WORKER_NUM); do
+#   export WORKER_PER_PROCESS_COUNT=$worker_num
+#   SERVER=multi_threaded ./benchmark.sh
+# done
 
-  # wait boot up
-  curl --silent --retry-connrefused --retry 10 --retry-delay 1 http://localhost:3000 > /dev/null
+# prefork
+# for process_num in $(seq 1 1 $MAX_PROCESS_NUM); do
+#   export PROCESS_COUNT=$process_num
+#   SERVER=prefork ./benchmark.sh
+# done
 
-  k6 run load_test.js --summary-export "reports/${server}-${PROCESS_COUNT}-${WORKER_PER_PROCESS_COUNT}.json"
+# prefork_multi_threaded
+for process_num in $(seq 1 1 $MAX_PROCESS_NUM); do
+  export PROCESS_COUNT=$process_num
 
-  ./kill_server.sh
+  for worker_num in $(seq 8 8 $MAX_WORKER_NUM); do
+    export WORKER_PER_PROCESS_COUNT=$worker_num
+    SERVER=prefork_multi_threaded ./benchmark.sh
+  done
 done
+
+# ractor
+# for process_num in $(seq 1 1 $MAX_PROCESS_NUM); do
+#   export PROCESS_COUNT=$process_num
+#
+#   for worker_num in $(seq 8 8 $MAX_WORKER_NUM); do
+#     export WORKER_PER_PROCESS_COUNT=$worker_num
+#     SERVER=ractor ./benchmark.sh
+#   done
+# done
