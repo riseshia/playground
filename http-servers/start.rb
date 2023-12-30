@@ -7,15 +7,11 @@ require_relative 'servers/multi_threaded_server'
 require_relative 'servers/prefork_server'
 require_relative 'servers/prefork_multi_threaded_server'
 
-require_relative 'apps/cpu_heavy_app'
-# require_relative 'apps/file_serving_app'
-# require_relative 'apps/web_request_app'
+require_relative 'apps/practical_usage_app'
 
 app = {
-  cpu_heavy: CpuHeavyApp,
-# file_serving: FileServingApp,
-# web_request: = WebRequestApp,
-}.fetch(ENV.fetch('APP', 'cpu_heavy').to_sym)
+  practical_usage: PracticalUsageApp,
+}.fetch(ENV.fetch('APP', 'practical_usage').to_sym)
 
 server = {
   fiber: FiberServer,

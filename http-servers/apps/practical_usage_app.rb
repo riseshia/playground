@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CpuHeavyApp
+class PracticalUsageApp
   CHARS = ('a'..'z').map(&:freeze).freeze
 
   def call(_env)
