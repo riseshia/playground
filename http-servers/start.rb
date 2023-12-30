@@ -11,15 +11,19 @@ require_relative 'apps/cpu_heavy_app'
 # require_relative 'apps/file_serving_app'
 # require_relative 'apps/web_request_app'
 
-APP = CpuHeavyApp
-# APP = FileServingApp
-# APP = WebRequestApp
+app = {
+  cpu_heavy: CpuHeavyApp,
+# file_serving: FileServingApp,
+# web_request: = WebRequestApp,
+}.fetch(ENV.fetch('APP', 'cpu_heavy').to_sym)
 
-# SERVER = FiberServer
-# SERVER = SingleThreadedServer
-# SERVER = MultiThreadedServer
-# SERVER = PreforkServer
-# SERVER = PreforkMultiThreadedServer
-SERVER = RactorServer
+server = {
+  fiber: FiberServer,
+  single_threaded: SingleThreadedServer,
+  multi_threaded: MultiThreadedServer,
+  prefork: PreforkServer,
+  prefork_multi_threaded: PreforkMultiThreadedServer,
+  ractor: RactorServer,
+}.fetch(ENV.fetch('SERVER').to_sym)
 
-SERVER.new(APP.new).start
+server.new(app.new).start
