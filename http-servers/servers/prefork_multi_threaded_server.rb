@@ -8,8 +8,8 @@ require_relative './http_utils/http_responder'
 class PreforkMultiThreadedServer
   PORT = ENV.fetch('PORT', 3000)
   HOST = ENV.fetch('HOST', '127.0.0.1').freeze
-  THREAD_COUNT = ENV.fetch('THREAD_COUNT', 4).to_i
-  WORKERS_COUNT = ENV.fetch('WORKERS_COUNT', 2).to_i
+  WORKER_PER_PROCESS_COUNT = ENV.fetch('WORKER_PER_PROCESS_COUNT', 4).to_i
+  PROCESS_COUNT = ENV.fetch('PROCESS_COUNT', 2).to_i
 
   attr_accessor :app
 
@@ -25,9 +25,9 @@ class PreforkMultiThreadedServer
 
     workers = []
 
-    WORKERS_COUNT.times do
+    PROCESS_COUNT.times do
       workers << fork do
-        pool = ThreadPool.new(size: THREAD_COUNT)
+        pool = ThreadPool.new(size: WORKER_PER_PROCESS_COUNT)
         loop do
           conn, _addr_info = socket.accept
           # execute the request in one of the threads

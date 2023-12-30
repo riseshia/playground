@@ -7,7 +7,7 @@ require_relative './http_utils/http_responder'
 class PreforkServer
   PORT = ENV.fetch('PORT', 3000)
   HOST = ENV.fetch('HOST', '127.0.0.1').freeze
-  WORKERS_COUNT = ENV.fetch('WORKERS_COUNT', 2).to_i
+  PROCESS_COUNT = ENV.fetch('PROCESS_COUNT', 2).to_i
 
   attr_accessor :app
 
@@ -23,7 +23,7 @@ class PreforkServer
 
     workers = []
 
-    WORKERS_COUNT.times do
+    PROCESS_COUNT.times do
       workers << fork do
         loop do
           conn, _addr_info = socket.accept

@@ -8,7 +8,7 @@ require_relative './http_utils/http_responder'
 class MultiThreadedServer
   PORT = ENV.fetch('PORT', 3000)
   HOST = ENV.fetch('HOST', '127.0.0.1').freeze
-  WORKERS_COUNT = ENV.fetch('WORKERS', 4).to_i
+  WORKER_PER_PROCESS_COUNT = ENV.fetch('WORKER_PER_PROCESS_COUNT', 4).to_i
 
   attr_accessor :app
 
@@ -20,7 +20,7 @@ class MultiThreadedServer
   def start
     write_pid
 
-    pool = ThreadPool.new(size: WORKERS_COUNT)
+    pool = ThreadPool.new(size: WORKER_PER_PROCESS_COUNT)
     socket = TCPServer.new(HOST, PORT)
 
     loop do
