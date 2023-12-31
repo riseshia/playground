@@ -39,8 +39,8 @@ Dir["reports/*.json"].each do |file|
   name, process_count, worker_per_process_count, load_type = filename.split('-')
   result = Result.new(
     name: name,
-    process_count: process_count,
-    worker_per_process_count: worker_per_process_count,
+    process_count: process_count.sub('0', ' '),
+    worker_per_process_count: worker_per_process_count.sub('0', ' '),
     load_type: load_type,
     metrics: json["metrics"]
   )
@@ -52,6 +52,7 @@ load_type = grouped_servers.values.first.first.load_type
 puts "Benchmark summary"
 puts "  Load type: #{load_type}"
 puts "  revision: #{`git rev-parse HEAD`.strip}"
+puts "  ruby version: #{RUBY_VERSION}#{RubyVM::YJIT.enabled? ? '+yjit' : ''}"
 puts
 
 grouped_servers.each do |name, results|
