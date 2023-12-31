@@ -8,9 +8,11 @@ require_relative 'servers/prefork_server'
 require_relative 'servers/prefork_multi_threaded_server'
 
 require_relative 'apps/practical_usage_app'
+require_relative 'apps/high_cpu_app'
 
 app = {
   practical_usage: PracticalUsageApp,
+  high_cpu: HighCpuApp,
 }.fetch(ENV.fetch('APP', 'practical_usage').to_sym)
 
 server = {

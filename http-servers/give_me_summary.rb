@@ -1,14 +1,14 @@
 require 'json'
 
 def format(filename, metrics)
-  name, process_count, worker_per_process_count = filename.split('-')
+  name, process_count, worker_per_process_count, load_type = filename.split('-')
   if name == 'multi_threaded'
     process_count = 1
   elsif name == 'single_threaded'
     process_count = 1
     worker_per_process_count = 1
   end
-  formatted_name = "#{name} (#{process_count} cpu, #{worker_per_process_count} workers)"
+  formatted_name = "[#{load_type}] #{name} (#{process_count} cpu, #{worker_per_process_count} workers)"
 
   rps = metrics["iterations"]["rate"]
   iteration_duration = metrics["iteration_duration"]

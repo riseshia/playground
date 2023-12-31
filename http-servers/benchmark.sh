@@ -13,8 +13,8 @@ echo
 echo "----------------------------------------------------------------------------------------------------"
 echo "Benchmarking ${APP} on ${SERVER} (process: ${PROCESS_COUNT}, worker per process: ${WORKER_PER_PROCESS_COUNT})"
 
-lsof -i :$PORT > /dev/null
-if [ $? -eq 0 ]; then
+
+if lsof -i :$PORT > /dev/null; then
   echo "Port $PORT is open. can't start benchmark."
   exit 1
 fi
@@ -26,6 +26,6 @@ curl --silent --retry-connrefused --retry 10 --retry-delay 1 http://localhost:30
 
 PC=$(printf "%02d" $PROCESS_COUNT)
 WPRC=$(printf "%02d" $WORKER_PER_PROCESS_COUNT)
-k6 run load_test.js --summary-export "reports/${SERVER}-${PC}-${WPRC}.json"
+k6 run load_test.js --summary-export "reports/${SERVER}-${PC}-${WPRC}-${APP}.json"
 
 ./kill_server.sh
