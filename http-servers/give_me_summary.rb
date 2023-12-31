@@ -1,14 +1,15 @@
 require 'json'
 
 def format(result)
+  process_count = result.process_count
+  worker_per_process_count = result.worker_per_process_count
   if result.name == 'multi_threaded'
     process_count = 1
   elsif result.name == 'single_threaded'
     process_count = 1
     worker_per_process_count = 1
-  else
-    process_count = result.process_count
-    worker_per_process_count = result.worker_per_process_count
+  elsif result.name == 'prefork'
+    worker_per_process_count = 1
   end
 
   formatted_name = "#{process_count} cpu, #{worker_per_process_count} workers"
