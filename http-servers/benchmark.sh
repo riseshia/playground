@@ -11,7 +11,13 @@ export RUBY_MAX_CPU=$PROCESS_COUNT
 
 echo
 echo "----------------------------------------------------------------------------------------------------"
-echo "Benchmarking ${SERVER} (process: ${PROCESS_COUNT}, worker per process: ${WORKER_PER_PROCESS_COUNT})"
+echo "Benchmarking ${APP} on ${SERVER} (process: ${PROCESS_COUNT}, worker per process: ${WORKER_PER_PROCESS_COUNT})"
+
+lsof -i :$PORT > /dev/null
+if [ $? -eq 0 ]; then
+  echo "Port $PORT is open. can't start benchmark."
+  exit 1
+fi
 
 bundle exec ruby start.rb &
 
