@@ -20,12 +20,12 @@ def format(result)
   col = []
   col << formatted_name.ljust(20)
   col << rps.to_i.to_s.rjust(5)
-  col << iteration_duration['avg'].to_i.to_s.rjust(5)
-  col << iteration_duration['med'].to_i.to_s.rjust(5)
-  col << iteration_duration['p(90)'].to_i.to_s.rjust(5)
-  col << iteration_duration['p(95)'].to_i.to_s.rjust(5)
-  col << iteration_duration['min'].to_i.to_s.rjust(5)
-  col << iteration_duration['max'].to_i.to_s.rjust(5)
+  col << (iteration_duration['avg'].to_i / 1000.0).to_s.rjust(7)
+  col << (iteration_duration['med'].to_i / 1000.0).to_s.rjust(7)
+  col << (iteration_duration['p(90)'].to_i / 1000.0).to_s.rjust(7)
+  col << (iteration_duration['p(95)'].to_i / 1000.0).to_s.rjust(7)
+  col << (iteration_duration['min'].to_i / 1000.0).to_s.rjust(7)
+  col << (iteration_duration['max'].to_i / 1000.0).to_s.rjust(7)
 
   puts col.join(' ')
 end
@@ -58,7 +58,7 @@ puts
 
 grouped_servers.each do |name, results|
   puts "  Server: #{name}"
-  puts(" " * 20 + "   rps   avg   med   p90   p95   min   max")
+  puts(" " * 20 + "   rps     avg     med     p90     p95     min     max")
 
   results.each do |result|
     format(result)

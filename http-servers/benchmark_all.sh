@@ -8,7 +8,8 @@ export PROCESS_COUNT=1
 export MAX_PROCESS_NUM=4
 export WORKER_PER_PROCESS_COUNT=1
 export MAX_WORKER_NUM=32
-export APP=high_cpu
+# export APP=high_cpu
+export APP=practical_usage
 
 rm reports/*.json || true
 
