@@ -40,8 +40,8 @@ Dir["reports/*.json"].each do |file|
   name, process_count, worker_per_process_count, load_type = filename.split('-')
   result = Result.new(
     name: name,
-    process_count: process_count.sub('0', ' '),
-    worker_per_process_count: worker_per_process_count.sub('0', ' '),
+    process_count: process_count,
+    worker_per_process_count: worker_per_process_count,
     load_type: load_type,
     metrics: json["metrics"]
   )

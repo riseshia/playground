@@ -7,16 +7,14 @@ class PracticalUsageApp
 
   def call(_env)
     res_body = ""
-    5.times do |_i|
+    2.times do |_i|
       # this is SLOWER with ractors
       # 500.downto(1) do |j|
       #   Math.sqrt(j) * i / 0.2
       # end
-      1000.times do |i|
+      300.times do |i|
         Math.sqrt(23_467**2436) * i / 0.2
       end
-
-      sleep 0.01
 
       res_body += fetch_remote_data
       res_body += "\n"
