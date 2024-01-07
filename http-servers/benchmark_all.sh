@@ -20,11 +20,15 @@ rm reports/*.json || true
 # SERVER=single_threaded ./benchmark.sh
 #
 # # multi_threaded
-# # for worker_num in $(seq 8 8 $MAX_WORKER_NUM); do
-# #   export WORKER_PER_PROCESS_COUNT=$worker_num
-# #   SERVER=multi_threaded ./benchmark.sh
-# # done
-#
+for worker_num in $(seq 8 8 $MAX_WORKER_NUM); do
+  # export WORKER_PER_PROCESS_COUNT=$worker_num
+  export WORKER_PER_PROCESS_COUNT=64
+  export RUBY_MN_THREADS=1
+  export RUBY_MAX_CPU=3
+  SERVER=multi_threaded ./benchmark.sh
+  exit
+done
+
 # # prefork
 # for process_num in $(seq 2 1 $MAX_PROCESS_NUM); do
 #   export PROCESS_COUNT=$process_num
@@ -32,20 +36,20 @@ rm reports/*.json || true
 # done
 #
 # # prefork_multi_threaded
-for process_num in $(seq 3 1 $MAX_PROCESS_NUM); do
-  export PROCESS_COUNT=$process_num
-
-  for worker_num in $(seq 32 8 $MAX_WORKER_NUM); do
-    export WORKER_PER_PROCESS_COUNT=$worker_num
-    SERVER=prefork_multi_threaded ./benchmark.sh
-  done
-done
-
-# # ractor
-# for process_num in $(seq 4 1 $MAX_PROCESS_NUM); do
+# for process_num in $(seq 1 1 $MAX_PROCESS_NUM); do
 #   export PROCESS_COUNT=$process_num
 #
 #   for worker_num in $(seq 32 8 $MAX_WORKER_NUM); do
+#     export WORKER_PER_PROCESS_COUNT=$worker_num
+#     SERVER=prefork_multi_threaded ./benchmark.sh
+#   done
+# done
+
+# # ractor
+# for process_num in $(seq 1 1 $MAX_PROCESS_NUM); do
+#   export PROCESS_COUNT=$process_num
+#
+#   for worker_num in $(seq 32 16 $MAX_WORKER_NUM); do
 #     export WORKER_PER_PROCESS_COUNT=$worker_num
 #     SERVER=ractor ./benchmark.sh
 #   done

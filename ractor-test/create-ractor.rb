@@ -1,5 +1,6 @@
-r = Ractor.new(name: "test-name")do
+r = Ractor.new do
   puts "In Ractor: #{Ractor.current}"
 end
 
-r.name
+# p r.take
+p 111
