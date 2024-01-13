@@ -39,7 +39,7 @@ prompt = ChatPromptTemplate.from_template(template)
 
 # LLM
 # Select the LLM that you downloaded
-ollama_llm = "llama2:7b-chat"
+ollama_llm = "phi:latest"
 model = ChatOllama(model=ollama_llm)
 
 # RAG chain

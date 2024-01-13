@@ -4,14 +4,13 @@ from langserve import add_routes
 
 app = FastAPI()
 
-
 @app.get("/")
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
+from rag_chroma_private import chain as rag_chroma_private_chain
 
-# Edit this to add the chain you want to add
-add_routes(app, NotImplemented)
+add_routes(app, rag_chroma_private_chain, path="/rag-chroma-private")
 
 if __name__ == "__main__":
     import uvicorn
