@@ -1,0 +1,7 @@
+{
+    "typeprof_version": "experimental",
+    "rbs_dir": "rbs/",
+    "analysis_unit_dirs": [
+        "app/"
+    ]
+}
