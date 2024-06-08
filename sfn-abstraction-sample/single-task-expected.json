@@ -23,6 +23,10 @@
       "Fail": {
          "Type": "Fail"
       },
+      "Success": {
+         "Type": "Pass",
+         "End": true
+      },
       "ProcessErrorInput": {
          "Next": "CheckError",
          "Parameters": {
@@ -32,11 +36,12 @@
          "Type": "Pass"
       },
       "Retry": {
+         "Type": "Wait",
          "Next": "RunTask",
-         "Seconds": 60,
-         "Type": "Wait"
+         "Seconds": 60
       },
       "RunTask": {
+         "Type": "Task",
          "Catch": [
             {
                "ErrorEquals": [
@@ -45,7 +50,6 @@
                "Next": "ProcessErrorInput"
             }
          ],
-         "End": true,
          "Parameters": {
             "Cluster": "service-cluster",
             "EnableExecuteCommand": true,
@@ -57,15 +61,15 @@
                   ],
                   "Subnets": [
                      "subnet-private-a",
-                     "subnet-private-b",
-                     "subnet-private-c"
+                     "subnet-private-c",
+                     "subnet-private-d"
                   ]
                }
             },
             "Overrides": {
                "ContainerOverrides": [
                   {
-                     "Command.$": "States.Array('bundle', 'exec', 'rails', $.taskName)",
+                     "Command": ["bundle", "exec", "rails", "routes"],
                      "Name": "app"
                   }
                ],
@@ -86,25 +90,7 @@
                "MaxAttempts": 4
             }
          ],
-         "Type": "Task"
-      },
-      "SelectDefaultSize": {
-         "Next": "RunTask",
-         "Parameters": {
-            "Cpu.$": "$.params.Cpu",
-            "Memory.$": "$.params.Memory",
-            "taskDefinition": "arn:aws:ecs:ap-northeast-1:xxx:task-definition/service-batch",
-            "taskName.$": "$.params.taskName"
-         },
-         "Type": "Pass"
-      },
-      "SetDefaultParameter": {
-         "Next": "BuildParameter",
-         "Result": {
-            "Cpu": null,
-            "Memory": null
-         },
-         "Type": "Pass"
+         "Next": "Success"
       }
    }
 }
