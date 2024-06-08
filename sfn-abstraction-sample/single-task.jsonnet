@@ -16,14 +16,10 @@ local serviceConfig = {
 };
 
 {
-  StartAt: 'SetDefaultParameter',
+  StartAt: 'RunTask',
   States: {
-    BuildParameter: {
-      Next: 'EetermineTaskSize',
-      Parameters: {
-        'params.$': 'States.JsonMerge($, $$.Execution.Input, false)',
-      },
-      Type: 'Pass',
+    RunTask: util.runRailsTask(serviceConfig) {
+      End: true,
     },
     CheckError: {
       Choices: [
@@ -70,9 +66,6 @@ local serviceConfig = {
       Next: 'RunTask',
       Seconds: 60,
       Type: 'Wait',
-    },
-    RunTask: util.runRailsTask(serviceConfig) {
-      End: true,
     },
   },
 }

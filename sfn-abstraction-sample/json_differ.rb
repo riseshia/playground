@@ -10,7 +10,9 @@ def diff(expected_partial, actual_partial, prefix: "", errors: [])
         diff(left_key_val, right_key_val, prefix: "#{prefix}.#{key}", errors: errors)
       else
         if left_key_val != right_key_val
-          errors << "#{prefix}.#{key} is different:\nExpected: #{left_key_val}\nActual: #{right_key_val}"
+          errors << "#{prefix}.#{key} is different:"
+          errors << "  Expected: #{left_key_val}"
+          errors << "  Actual: #{right_key_val}"
         end
       end
     else
@@ -51,6 +53,6 @@ extra_errors = detect_extra(expected, actual)
 errors = diff_errors + extra_errors
 
 if errors.size > 0
-  errors.each { |e| puts e }
+  errors.each { |e| puts "  #{e}" }
   exit 1
 end
