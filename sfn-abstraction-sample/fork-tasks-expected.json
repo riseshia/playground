@@ -4,8 +4,8 @@
     "GenNumbers": {
       "Next": "ForkProcess",
       "Parameters": {
-        "ForkNumbers.$": "States.ArrayRange(0, 7, 1)",
-        "ForkSize": "8"
+        "ForkNumbers.$": "States.ArrayRange(0, 3, 1)",
+        "ForkSize": "4"
       },
       "Type": "Pass"
     },
@@ -14,19 +14,18 @@
         "ProcessorConfig": {
           "Mode": "INLINE"
         },
-        "StartAt": "RunTask",
+        "StartAt": "RunTask00",
         "States": {
-          "RunTask": {
+          "RunTask00": {
             "Catch": [
               {
                 "ErrorEquals": [
                   "States.ALL"
                 ],
-                "Next": "ProcessErrorInput",
-                "ResultPath": "$.TaskResult"
+                "Next": "ProcessErrorInput00"
               }
             ],
-            "Next": "MarkingSuccess",
+            "Next": "MarkingSuccess00",
             "Parameters": {
               "Cluster": "service-cluster",
               "EnableExecuteCommand": true,
@@ -55,7 +54,7 @@
                     "Environment": [
                       {
                         "Name": "BATCH_FORK_COUNT",
-                        "Value": "8"
+                        "Value": "4"
                       },
                       {
                         "Name": "BATCH_FORK_NUMBER",
@@ -65,8 +64,8 @@
                     "Name": "app"
                   }
                 ],
-                "Cpu": null,
-                "Memory": null
+                "Cpu": 1024,
+                "Memory": 2048
               },
               "PropagateTags": "TASK_DEFINITION",
               "TaskDefinition": "arn:aws:ecs:ap-northeast-1:xxxx:task-definition/service-batch"
@@ -85,8 +84,8 @@
             ],
             "Type": "Task"
           },
-          "ProcessErrorInput": {
-            "Next": "CheckError",
+          "ProcessErrorInput00": {
+            "Next": "CheckError00",
             "Parameters": {
               "Cause.$": "States.StringToJson($.TaskResult.Cause)",
               "Error.$": "$.TaskResult.Error",
@@ -95,10 +94,10 @@
             },
             "Type": "Pass"
           },
-          "CheckError": {
+          "CheckError00": {
             "Choices": [
               {
-                "Next": "Retry",
+                "Next": "Retry00",
                 "Or": [
                   {
                     "StringEquals": "ResourceInitializationError: failed to configure ENI: failed to setup regular eni: netplugin failed with no error message",
@@ -111,46 +110,23 @@
                 ]
               }
             ],
-            "Default": "TransformErrorInput",
+            "Default": "MarkingFailure00",
             "Type": "Choice"
           },
-          "MarkingSuccess": {
+          "MarkingSuccess00": {
             "End": true,
             "Result": "Success",
             "Type": "Pass"
           },
-          "NotifyFailure": {
-            "Next": "MarkingFailure",
-            "Parameters": {
-              "Message.$": "$.Message",
-              "MessageAttributes.$": "$.MessageAttributes",
-              "TopicArn": "batch-failure-topic"
-            },
-            "Resource": "arn:aws:states:::sns:publish",
-            "Type": "Task"
-          },
-          "MarkingFailure": {
+          "MarkingFailure00": {
             "End": true,
             "Result": "Failure",
             "Type": "Pass"
           },
-          "Retry": {
-            "Next": "RunTask",
+          "Retry00": {
+            "Next": "RunTask00",
             "Seconds": 60,
             "Type": "Wait"
-          },
-          "TransformErrorInput": {
-            "Next": "NotifyFailure",
-            "Parameters": {
-              "Message": "Batch failure",
-              "MessageAttributes": {
-                "BatchName": {
-                  "DataType": "String",
-                  "StringValue": "fork-task"
-                }
-              }
-            },
-            "Type": "Pass"
           }
         }
       },
@@ -180,10 +156,10 @@
       "Default": "SfnSucceed",
       "Type": "Choice"
     },
-    "SfnFailed": {
+    "Fail": {
       "Type": "Fail"
     },
-    "SfnSucceed": {
+    "Success": {
       "End": true,
       "Type": "Pass"
     }

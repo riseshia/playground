@@ -1,0 +1,20 @@
+{
+   "StartAt": "RunTask01",
+   "States": {
+      "RunTask01": {
+         "Type": "Pass",
+         "Next": "RunTask02"
+      },
+      "RunTask02": {
+         "Type": "Pass",
+         "Next": "Success"
+      },
+      "Fail": {
+         "Type": "Fail"
+      },
+      "Success": {
+         "Type": "Pass",
+         "End": true
+      }
+   }
+}

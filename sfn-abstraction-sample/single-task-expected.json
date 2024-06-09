@@ -1,10 +1,10 @@
 {
-   "StartAt": "RunTask",
+   "StartAt": "RunTask01",
    "States": {
-      "CheckError": {
+      "CheckError01": {
          "Choices": [
             {
-               "Next": "Retry",
+               "Next": "Retry01",
                "Or": [
                   {
                      "StringEquals": "ResourceInitializationError: failed to configure ENI: failed to setup regular eni: netplugin failed with no error message",
@@ -27,27 +27,27 @@
          "Type": "Pass",
          "End": true
       },
-      "ProcessErrorInput": {
-         "Next": "CheckError",
+      "ProcessErrorInput01": {
+         "Next": "CheckError01",
          "Parameters": {
-            "Cause.$": "States.StringToJson($.Cause)",
-            "Error.$": "$.Error"
+            "Cause.$": "States.StringToJson($.TaskResult.Cause)",
+            "Error.$": "$.TaskResult.Error"
          },
          "Type": "Pass"
       },
-      "Retry": {
+      "Retry01": {
          "Type": "Wait",
-         "Next": "RunTask",
+         "Next": "RunTask01",
          "Seconds": 60
       },
-      "RunTask": {
+      "RunTask01": {
          "Type": "Task",
          "Catch": [
             {
                "ErrorEquals": [
                   "States.ALL"
                ],
-               "Next": "ProcessErrorInput"
+               "Next": "ProcessErrorInput01"
             }
          ],
          "Parameters": {
@@ -80,6 +80,7 @@
             "TaskDefinition": "arn:aws:ecs:ap-northeast-1:xxxx:task-definition/service-batch"
          },
          "Resource": "arn:aws:states:::ecs:runTask.sync",
+         "ResultPath": "$.TaskResult",
          "Retry": [
             {
                "BackoffRate": 2,

@@ -1,1 +1,337 @@
-{}
+{
+  "StartAt": "RunTask00",
+  "States": {
+    "CheckError00": {
+       "Choices": [
+          {
+             "Next": "Retry00",
+             "Or": [
+                {
+                   "StringEquals": "ResourceInitializationError: failed to configure ENI: failed to setup regular eni: netplugin failed with no error message",
+                   "Variable": "$.Cause.StoppedReason"
+                },
+                {
+                   "StringEquals": "Unexpected EC2 error while attempting to attach network interface to instance",
+                   "Variable": "$.Cause.StoppedReason"
+                }
+             ]
+          }
+       ],
+       "Default": "Fail",
+       "Type": "Choice"
+    },
+    "ProcessErrorInput00": {
+       "Next": "CheckError00",
+       "Parameters": {
+          "Cause.$": "States.StringToJson($.TaskResult.Cause)",
+          "Error.$": "$.TaskResult.Error"
+       },
+       "Type": "Pass"
+    },
+    "Retry00": {
+       "Type": "Wait",
+       "Next": "RunTask00",
+       "Seconds": 60
+    },
+    "RunTask00": {
+       "Type": "Task",
+       "Catch": [
+          {
+             "ErrorEquals": [
+                "States.ALL"
+             ],
+             "Next": "ProcessErrorInput00"
+          }
+       ],
+       "Parameters": {
+          "Cluster": "service-cluster",
+          "EnableExecuteCommand": true,
+          "LaunchType": "FARGATE",
+          "NetworkConfiguration": {
+             "AwsvpcConfiguration": {
+                "SecurityGroups": [
+                  "sg-ecs-task"
+                ],
+                "Subnets": [
+                   "subnet-private-a",
+                   "subnet-private-c",
+                   "subnet-private-d"
+                ]
+             }
+          },
+          "Overrides": {
+             "ContainerOverrides": [
+                {
+                   "Command": ["bundle", "exec", "rails", "routes"],
+                   "Name": "app"
+                }
+             ],
+             "Cpu": 1024,
+             "Memory": 2048
+          },
+          "PropagateTags": "TASK_DEFINITION",
+          "TaskDefinition": "arn:aws:ecs:ap-northeast-1:xxxx:task-definition/service-batch"
+       },
+       "Resource": "arn:aws:states:::ecs:runTask.sync",
+       "ResultPath": "$.TaskResult",
+       "Retry": [
+          {
+             "BackoffRate": 2,
+             "ErrorEquals": [
+                "ECS.AmazonECSException"
+             ],
+             "IntervalSeconds": 5,
+             "MaxAttempts": 4
+          }
+       ],
+       "Next": "GenNumbers"
+    },
+    "GenNumbers": {
+      "Next": "ForkProcess",
+      "Parameters": {
+        "ForkNumbers.$": "States.ArrayRange(0, 3, 1)",
+        "ForkSize": "4"
+      },
+      "Type": "Pass"
+    },
+    "ForkProcess": {
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "RunTask01",
+        "States": {
+          "RunTask01": {
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "ProcessErrorInput01"
+              }
+            ],
+            "Next": "MarkingSuccess01",
+            "Parameters": {
+              "Cluster": "service-cluster",
+              "EnableExecuteCommand": true,
+              "LaunchType": "FARGATE",
+              "NetworkConfiguration": {
+                "AwsvpcConfiguration": {
+                  "SecurityGroups": [
+                    "sg-ecs-task"
+                  ],
+                  "Subnets": [
+                    "subnet-private-a",
+                    "subnet-private-c",
+                    "subnet-private-d"
+                  ]
+                }
+              },
+              "Overrides": {
+                "ContainerOverrides": [
+                  {
+                    "Command": [
+                      "bundle",
+                      "exec",
+                      "rails",
+                      "routes"
+                    ],
+                    "Environment": [
+                      {
+                        "Name": "BATCH_FORK_COUNT",
+                        "Value": "4"
+                      },
+                      {
+                        "Name": "BATCH_FORK_NUMBER",
+                        "Value.$": "States.Format('{}', $.ForkNumber)"
+                      }
+                    ],
+                    "Name": "app"
+                  }
+                ],
+                "Cpu": 1024,
+                "Memory": 2048
+              },
+              "PropagateTags": "TASK_DEFINITION",
+              "TaskDefinition": "arn:aws:ecs:ap-northeast-1:xxxx:task-definition/service-batch"
+            },
+            "Resource": "arn:aws:states:::ecs:runTask.sync",
+            "ResultPath": "$.TaskResult",
+            "Retry": [
+              {
+                "BackoffRate": 2,
+                "ErrorEquals": [
+                  "ECS.AmazonECSException"
+                ],
+                "IntervalSeconds": 5,
+                "MaxAttempts": 4
+              }
+            ],
+            "Type": "Task"
+          },
+          "ProcessErrorInput01": {
+            "Next": "CheckError01",
+            "Parameters": {
+              "Cause.$": "States.StringToJson($.TaskResult.Cause)",
+              "Error.$": "$.TaskResult.Error",
+              "ForkNumber.$": "$.ForkNumber",
+              "ForkSize.$": "$.ForkSize"
+            },
+            "Type": "Pass"
+          },
+          "CheckError01": {
+            "Choices": [
+              {
+                "Next": "Retry01",
+                "Or": [
+                  {
+                    "StringEquals": "ResourceInitializationError: failed to configure ENI: failed to setup regular eni: netplugin failed with no error message",
+                    "Variable": "$.Cause.StoppedReason"
+                  },
+                  {
+                    "StringEquals": "Unexpected EC2 error while attempting to attach network interface to instance",
+                    "Variable": "$.Cause.StoppedReason"
+                  }
+                ]
+              }
+            ],
+            "Default": "MarkingFailure01",
+            "Type": "Choice"
+          },
+          "MarkingSuccess01": {
+            "End": true,
+            "Result": "Success",
+            "Type": "Pass"
+          },
+          "MarkingFailure01": {
+            "End": true,
+            "Result": "Failure",
+            "Type": "Pass"
+          },
+          "Retry01": {
+            "Next": "RunTask01",
+            "Seconds": 60,
+            "Type": "Wait"
+          }
+        }
+      },
+      "ItemSelector": {
+        "ForkNumber.$": "$$.Map.Item.Value",
+        "ForkSize.$": "$.ForkSize"
+      },
+      "ItemsPath": "$.ForkNumbers",
+      "Next": "FindFailedMap",
+      "Type": "Map"
+    },
+    "FindFailedMap": {
+      "Next": "FinalJudge",
+      "Parameters": {
+        "HasFailure.$": "States.ArrayContains($, 'Failure')"
+      },
+      "Type": "Pass"
+    },
+    "FinalJudge": {
+      "Choices": [
+        {
+          "BooleanEquals": true,
+          "Next": "SfnFailed",
+          "Variable": "$.HasFailure"
+        }
+      ],
+      "Default": "SfnSucceed",
+      "Type": "Choice"
+    },
+    "CheckError02": {
+       "Choices": [
+          {
+             "Next": "Retry02",
+             "Or": [
+                {
+                   "StringEquals": "ResourceInitializationError: failed to configure ENI: failed to setup regular eni: netplugin failed with no error message",
+                   "Variable": "$.Cause.StoppedReason"
+                },
+                {
+                   "StringEquals": "Unexpected EC2 error while attempting to attach network interface to instance",
+                   "Variable": "$.Cause.StoppedReason"
+                }
+             ]
+          }
+       ],
+       "Default": "Fail",
+       "Type": "Choice"
+    },
+    "ProcessErrorInput02": {
+       "Next": "CheckError02",
+       "Parameters": {
+          "Cause.$": "States.StringToJson($.TaskResult.Cause)",
+          "Error.$": "$.TaskResult.Error"
+       },
+       "Type": "Pass"
+    },
+    "Retry02": {
+       "Type": "Wait",
+       "Next": "RunTask02",
+       "Seconds": 60
+    },
+    "RunTask02": {
+       "Type": "Task",
+       "Catch": [
+          {
+             "ErrorEquals": [
+                "States.ALL"
+             ],
+             "Next": "ProcessErrorInput02"
+          }
+       ],
+       "Parameters": {
+          "Cluster": "service-cluster",
+          "EnableExecuteCommand": true,
+          "LaunchType": "FARGATE",
+          "NetworkConfiguration": {
+             "AwsvpcConfiguration": {
+                "SecurityGroups": [
+                  "sg-ecs-task"
+                ],
+                "Subnets": [
+                   "subnet-private-a",
+                   "subnet-private-c",
+                   "subnet-private-d"
+                ]
+             }
+          },
+          "Overrides": {
+             "ContainerOverrides": [
+                {
+                   "Command": ["bundle", "exec", "rails", "routes"],
+                   "Name": "app"
+                }
+             ],
+             "Cpu": 1024,
+             "Memory": 2048
+          },
+          "PropagateTags": "TASK_DEFINITION",
+          "TaskDefinition": "arn:aws:ecs:ap-northeast-1:xxxx:task-definition/service-batch"
+       },
+       "Resource": "arn:aws:states:::ecs:runTask.sync",
+       "ResultPath": "$.TaskResult",
+       "Retry": [
+          {
+             "BackoffRate": 2,
+             "ErrorEquals": [
+                "ECS.AmazonECSException"
+             ],
+             "IntervalSeconds": 5,
+             "MaxAttempts": 4
+          }
+       ],
+       "Next": "Success"
+    },
+    "Fail": {
+      "Type": "Fail"
+    },
+    "Success": {
+      "End": true,
+      "Type": "Pass"
+    }
+  }
+}

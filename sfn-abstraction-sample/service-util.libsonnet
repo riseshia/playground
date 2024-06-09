@@ -16,12 +16,23 @@ local serviceConfig = {
 };
 
 {
-  runRailsTask(TaskName, cpu=null, memory=null, envs=[]): util.runRailsTask(
+  compile(states): util.compile(states),
+  fork(ForkSize, command): util.fork(ForkSize, command),
+  runRailsTask(id, TaskName, cpu=null, memory=null, envs=[]): util.runRailsTask(
+    id=id,
     serviceConfig=serviceConfig,
     TaskName=TaskName,
     cpu=cpu,
     memory=memory,
     envs=envs,
   ),
-  compile(states): util.compile(states),
+  runRailsTaskWithFork(id, TaskName, ForkSize, cpu=null, memory=null, envs=[]): util.runRailsTaskWithFork(
+    id=id,
+    serviceConfig=serviceConfig,
+    TaskName=TaskName,
+    ForkSize=ForkSize,
+    cpu=cpu,
+    memory=memory,
+    envs=envs,
+  ),
 }
