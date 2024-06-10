@@ -1,4 +1,4 @@
-local util = import './util.libsonnet';
+local util = import './sfn-builder.libsonnet';
 
 local serviceConfig = {
   cluster: 'service-cluster',

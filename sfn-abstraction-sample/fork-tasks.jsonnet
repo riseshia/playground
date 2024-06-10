@@ -1,4 +1,4 @@
-local util = import './service-util.libsonnet';
+local util = import './service-sfn-builder.libsonnet';
 
 util.compile([
   util.runRailsTaskWithFork(

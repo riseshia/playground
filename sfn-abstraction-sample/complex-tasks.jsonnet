@@ -1,4 +1,4 @@
-local util = import './service-util.libsonnet';
+local util = import './service-sfn-builder.libsonnet';
 
 util.compile([
   util.runRailsTask(id='00', cpu=1024, memory=2048, TaskName='routes'),
