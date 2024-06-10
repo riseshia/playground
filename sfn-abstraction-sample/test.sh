@@ -2,14 +2,14 @@
 
 set -eu
 
-echo "Test compile 1 task"
-jsonnet compile-one-task.jsonnet > compile-one-task-actual.json
-ruby json_differ.rb compile-one-task-expected.json compile-one-task-actual.json
+echo "Test merge 1 task"
+jsonnet merge-one-task.jsonnet > merge-one-task-actual.json
+ruby json_differ.rb merge-one-task-expected.json merge-one-task-actual.json
 echo "  Passed"
 
-echo "Test compile serial tasks"
-jsonnet compile-serial-tasks.jsonnet > compile-serial-tasks-actual.json
-ruby json_differ.rb compile-serial-tasks-expected.json compile-serial-tasks-actual.json
+echo "Test merge serial tasks"
+jsonnet merge-serial-tasks.jsonnet > merge-serial-tasks-actual.json
+ruby json_differ.rb merge-serial-tasks-expected.json merge-serial-tasks-actual.json
 echo "  Passed"
 
 echo "Test single task"

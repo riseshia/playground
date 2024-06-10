@@ -1,6 +1,6 @@
 local b = import './service-sfn-builder.libsonnet';
 
-b.compile([
+b.merge([
   b.runRailsTaskWithFork(
     id='00',
     cpu=1024,

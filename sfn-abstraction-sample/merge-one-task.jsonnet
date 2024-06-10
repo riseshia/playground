@@ -1,5 +1,5 @@
 local b = import './sfn-builder.libsonnet';
 
-b.compile([
+b.merge([
   b.echoTask('01'),
 ])

@@ -32,7 +32,7 @@ local replaceEndToNext(state, nextStateKey) = std.foldl(
   {}
 );
 
-local compileCommands(acc, command) = {
+local mergeCommands(acc, command) = {
   local nextStateKey = if acc.Idx + 1 < std.length(acc.AllCommands) then acc.AllCommands[acc.Idx + 1].StartAt else 'Success',
 
   local states = std.foldl(
@@ -245,10 +245,10 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
     },
     EndAt: keyWithSuffix,
   },
-  compile(commands): {
+  merge(commands): {
     assert std.length(commands) > 0 : 'commands must not be empty',
 
     StartAt: commands[0].StartAt,
-    States: std.foldl(compileCommands, commands, { AllCommands: commands, Idx: 0, Result: {} }).Result + terminateStates,
+    States: std.foldl(mergeCommands, commands, { AllCommands: commands, Idx: 0, Result: {} }).Result + terminateStates,
   },
 }

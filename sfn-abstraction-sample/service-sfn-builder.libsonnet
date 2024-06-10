@@ -16,7 +16,7 @@ local serviceConfig = {
 };
 
 {
-  compile(states): builder.compile(states),
+  merge(states): builder.merge(states),
   fork(ForkSize, command): builder.fork(ForkSize, command),
   runRailsTask(id, TaskName, cpu=null, memory=null, envs=[]): builder.runRailsTask(
     id=id,
