@@ -1,14 +1,14 @@
-local runTaskParams(serviceConfig, command) = {
-  assert (serviceConfig.cpu == null || std.isNumber(serviceConfig.cpu)) : 'cpu must be a number',
-  assert (serviceConfig.memory == null || std.isNumber(serviceConfig.memory)) : 'memory must be a number',
+local runTaskParams(service_config, command) = {
+  assert (service_config.cpu == null || std.isNumber(service_config.cpu)) : 'cpu must be a number',
+  assert (service_config.memory == null || std.isNumber(service_config.memory)) : 'memory must be a number',
 
-  Cluster: serviceConfig.cluster,
+  Cluster: service_config.cluster,
   EnableExecuteCommand: true,
   LaunchType: 'FARGATE',
   NetworkConfiguration: {
     AwsvpcConfiguration: {
-      SecurityGroups: serviceConfig.securityGroups,
-      Subnets: serviceConfig.subnets,
+      SecurityGroups: service_config.security_groups,
+      Subnets: service_config.subnets,
     },
   },
   Overrides: {
@@ -16,14 +16,14 @@ local runTaskParams(serviceConfig, command) = {
       {
         Name: 'app',
         Command: command,
-        [if std.length(serviceConfig.envs) > 0 then 'Environment']: serviceConfig.envs,
+        [if std.length(service_config.envs) > 0 then 'Environment']: service_config.envs,
       },
     ],
-    [if std.isNumber(serviceConfig.cpu) then 'Cpu']: serviceConfig.cpu,
-    [if std.isNumber(serviceConfig.memory) then 'Memory']: serviceConfig.memory,
+    [if std.isNumber(service_config.cpu) then 'Cpu']: service_config.cpu,
+    [if std.isNumber(service_config.memory) then 'Memory']: service_config.memory,
   },
   PropagateTags: 'TASK_DEFINITION',
-  TaskDefinition: serviceConfig.taskDefinition,
+  TaskDefinition: service_config.task_definition,
 };
 
 local replaceEndToNext(state, nextStateKey) = std.foldl(
@@ -60,11 +60,11 @@ local terminateStates = {
   },
 };
 
-local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) = {
+local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) = {
   ['RunTask%s' % id]: {
     Type: 'Task',
     Resource: 'arn:aws:states:::ecs:runTask.sync',
-    Parameters: runTaskParams(serviceConfig {
+    Parameters: runTaskParams(service_config {
       cpu: cpu,
       memory: memory,
       envs: envs,
@@ -124,17 +124,17 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
 };
 
 {
-  runRailsTask(id, serviceConfig, TaskName, cpu=null, memory=null, envs=[]): {
+  runRailsTask(id, service_config, task_name, cpu=null, memory=null, envs=[]): {
     local keyWithSuffix = 'RunTask%s' % id,
 
     StartAt: keyWithSuffix,
     EndAt: keyWithSuffix,
     States: runTaskState(
       id=id,
-      serviceConfig=serviceConfig,
+      service_config=service_config,
       cpu=cpu,
       memory=memory,
-      command=['bundle', 'exec', 'rails', TaskName],
+      command=['bundle', 'exec', 'rails', task_name],
       envs=envs,
     ) {
       ['RunTask%s' % id]+: {
@@ -142,17 +142,17 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
       },
     },
   },
-  runRailsTaskWithFork(serviceConfig, id, TaskName, ForkSize, cpu=null, memory=null, envs=[]): {
-    assert ForkSize > 1 : 'ForkSize must be greater than 1',
+  runRailsTaskWithFork(service_config, id, task_name, fork_size, cpu=null, memory=null, envs=[]): {
+    assert fork_size > 1 : 'fork_size must be greater than 1',
 
-    local taskState = runTaskState(
+    local task_state = runTaskState(
       id=id,
-      serviceConfig=serviceConfig,
+      service_config=service_config,
       cpu=cpu,
       memory=memory,
-      command=['bundle', 'exec', 'rails', TaskName],
+      command=['bundle', 'exec', 'rails', task_name],
       envs=envs + [
-        { Name: 'BATCH_FORK_COUNT', Value: std.toString(ForkSize) },
+        { Name: 'BATCH_FORK_COUNT', Value: std.toString(fork_size) },
         { Name: 'BATCH_FORK_NUMBER', 'Value.$': "States.Format('{}', $.ForkNumber)" },
       ],
     ) {
@@ -169,10 +169,10 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
         Default: 'MarkingFailure%s' % id,
       },
     },
-    local taskCommand = {
+    local task_command = {
       StartAt: 'RunTask%s' % id,
       EndAt: 'RunTask%s' % id,
-      States: taskState,
+      States: task_state,
     },
 
     StartAt: 'GenNumbers',
@@ -181,8 +181,8 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
         Type: 'Pass',
         Next: 'ForkProcess',
         Parameters: {
-          'ForkNumbers.$': 'States.ArrayRange(0, %s, 1)' % (ForkSize - 1),
-          ForkSize: std.toString(ForkSize),
+          'ForkNumbers.$': 'States.ArrayRange(0, %s, 1)' % (fork_size - 1),
+          ForkSize: std.toString(fork_size),
         },
       },
       ForkProcess: {
@@ -197,8 +197,8 @@ local runTaskState(id, serviceConfig, command, cpu=null, memory=null, envs=[]) =
           ProcessorConfig: {
             Mode: 'INLINE',
           },
-          StartAt: taskCommand.StartAt,
-          States: taskCommand.States {
+          StartAt: task_command.StartAt,
+          States: task_command.States {
             ['MarkingSuccess%s' % id]: {
               End: true,
               Result: 'Success',
