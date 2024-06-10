@@ -32,20 +32,20 @@ local replaceEndToNext(state, nextStateKey) = std.foldl(
   {}
 );
 
-local mergeCommands(acc, command) = {
-  local nextStateKey = if acc.Idx + 1 < std.length(acc.AllCommands) then acc.AllCommands[acc.Idx + 1].StartAt else 'Success',
+local mergeDefinitions(acc, definition) = {
+  local nextStateKey = if acc.Idx + 1 < std.length(acc.AllDefinitions) then acc.AllDefinitions[acc.Idx + 1].StartAt else 'Success',
 
   local states = std.foldl(
-    function(newStates, stateKey) if std.objectHas(command.States[stateKey], 'End') && command.States[stateKey].End then newStates {
-      [stateKey]: replaceEndToNext(command.States[stateKey], nextStateKey),
+    function(newStates, stateKey) if std.objectHas(definition.States[stateKey], 'End') && definition.States[stateKey].End then newStates {
+      [stateKey]: replaceEndToNext(definition.States[stateKey], nextStateKey),
     } else newStates {
-      [stateKey]: command.States[stateKey],
+      [stateKey]: definition.States[stateKey],
     },
-    std.objectFields(command.States),
+    std.objectFields(definition.States),
     {}
   ),
 
-  AllCommands: acc.AllCommands,
+  AllDefinitions: acc.AllDefinitions,
   Idx: acc.Idx + 1,
   Result: acc.Result + states,
 };
@@ -169,7 +169,7 @@ local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) 
         Default: 'MarkingFailure%s' % id,
       },
     },
-    local task_command = {
+    local task_definition = {
       StartAt: 'RunTask%s' % id,
       EndAt: 'RunTask%s' % id,
       States: task_state,
@@ -197,8 +197,8 @@ local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) 
           ProcessorConfig: {
             Mode: 'INLINE',
           },
-          StartAt: task_command.StartAt,
-          States: task_command.States {
+          StartAt: task_definition.StartAt,
+          States: task_definition.States {
             ['MarkingSuccess%s' % id]: {
               End: true,
               Result: 'Success',
@@ -245,10 +245,10 @@ local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) 
     },
     EndAt: keyWithSuffix,
   },
-  merge(commands): {
-    assert std.length(commands) > 0 : 'commands must not be empty',
+  merge(definitions): {
+    assert std.length(definitions) > 0 : 'definitions must not be empty',
 
-    StartAt: commands[0].StartAt,
-    States: std.foldl(mergeCommands, commands, { AllCommands: commands, Idx: 0, Result: {} }).Result + terminateStates,
+    StartAt: definitions[0].StartAt,
+    States: std.foldl(mergeDefinitions, definitions, { AllDefinitions: definitions, Idx: 0, Result: {} }).Result + terminateStates,
   },
 }
