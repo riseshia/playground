@@ -1,6 +1,6 @@
-local util = import './sfn-builder.libsonnet';
+local b = import './sfn-builder.libsonnet';
 
-util.compile([
-  util.echoTask('01'),
-  util.echoTask('02'),
+b.compile([
+  b.echoTask('01'),
+  b.echoTask('02'),
 ])

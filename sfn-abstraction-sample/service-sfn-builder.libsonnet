@@ -1,4 +1,4 @@
-local util = import './sfn-builder.libsonnet';
+local builder = import './sfn-builder.libsonnet';
 
 local serviceConfig = {
   cluster: 'service-cluster',
@@ -16,9 +16,9 @@ local serviceConfig = {
 };
 
 {
-  compile(states): util.compile(states),
-  fork(ForkSize, command): util.fork(ForkSize, command),
-  runRailsTask(id, TaskName, cpu=null, memory=null, envs=[]): util.runRailsTask(
+  compile(states): builder.compile(states),
+  fork(ForkSize, command): builder.fork(ForkSize, command),
+  runRailsTask(id, TaskName, cpu=null, memory=null, envs=[]): builder.runRailsTask(
     id=id,
     serviceConfig=serviceConfig,
     TaskName=TaskName,
@@ -26,7 +26,7 @@ local serviceConfig = {
     memory=memory,
     envs=envs,
   ),
-  runRailsTaskWithFork(id, TaskName, ForkSize, cpu=null, memory=null, envs=[]): util.runRailsTaskWithFork(
+  runRailsTaskWithFork(id, TaskName, ForkSize, cpu=null, memory=null, envs=[]): builder.runRailsTaskWithFork(
     id=id,
     serviceConfig=serviceConfig,
     TaskName=TaskName,

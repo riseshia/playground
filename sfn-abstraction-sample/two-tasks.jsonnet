@@ -1,6 +1,6 @@
-local util = import './service-sfn-builder.libsonnet';
+local b = import './service-sfn-builder.libsonnet';
 
-util.compile([
-  util.runRailsTask(id='01', cpu=1024, memory=2048, TaskName='routes'),
-  util.runRailsTask(id='02', cpu=1024, memory=2048, TaskName='routes'),
+b.compile([
+  b.runRailsTask(id='01', cpu=1024, memory=2048, TaskName='routes'),
+  b.runRailsTask(id='02', cpu=1024, memory=2048, TaskName='routes'),
 ])
