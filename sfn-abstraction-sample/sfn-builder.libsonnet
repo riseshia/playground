@@ -125,10 +125,10 @@ local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) 
 
 {
   runRailsTask(id, service_config, task_name, cpu=null, memory=null, envs=[]): {
-    local keyWithSuffix = 'RunTask%s' % id,
+    local key_with_suffix = 'RunTask%s' % id,
 
-    StartAt: keyWithSuffix,
-    EndAt: keyWithSuffix,
+    StartAt: key_with_suffix,
+    EndAt: key_with_suffix,
     States: runTaskState(
       id=id,
       service_config=service_config,
@@ -234,16 +234,16 @@ local runTaskState(id, service_config, command, cpu=null, memory=null, envs=[]) 
     EndAt: 'SfnSucceed',
   },
   echoTask(suffix): {
-    local keyWithSuffix = 'RunTask%s' % suffix,
+    local key_with_suffix = 'RunTask%s' % suffix,
 
-    StartAt: keyWithSuffix,
+    StartAt: key_with_suffix,
     States: {
-      [keyWithSuffix]: {
+      [key_with_suffix]: {
         Type: 'Pass',
         End: true,
       },
     },
-    EndAt: keyWithSuffix,
+    EndAt: key_with_suffix,
   },
   merge(definitions): {
     assert std.length(definitions) > 0 : 'definitions must not be empty',
