@@ -1,43 +1,39 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
+// use serde_json::Result;
+use std::path::{Path, PathBuf};
 
-fn parse_json(data: String) -> Person {
-    serde_json::from_str(&data).expect("Invalid JSON str")
+use jrsonnet_evaluator::{error::LocError, EvaluationState, FileImportResolver};
+
+pub fn evaluate_from_file(path: &Path) -> Result<String, String> {
+    let state = EvaluationState::default();
+    state.with_stdlib();
+    state.set_import_resolver(Box::new(FileImportResolver::default()));
+
+    match evaluate(path, &state) {
+        Ok(val) => Ok(val),
+        Err(err) => Err(state.stringify_err(&err)),
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Person {
     name: String,
     age: u8,
     phones: Vec<String>,
 }
 
-use jsonnet::JsonnetVm;
+fn evaluate(path: &Path, state: &EvaluationState) -> Result<String, LocError> {
+    let val = state.import(state.resolve_file(&PathBuf::new(), &opts.input.input)?)?
+    let result = state.manifest(val)?;
+    Ok(result.to_string())
+}
 
-fn main() -> Result<()> {
-    let data = r#"
-    local obj = {
-        name: "John Doe",
-        age: 43,
-        phones: [
-            "+44 1234567",
-            "+44 2345678"
-        ]
-    };
+fn main() -> Result<(), String> {
+    let result = evaluate_from_file(&PathBuf::from("example.jsonnet"))?;
 
-    obj"#;
+    let person = serde_json::from_str::<Person>(&result).map_err(|e| e.to_string())?;
 
-    let mut vm = JsonnetVm::new();
-
-    let output = vm.evaluate_snippet("example", data).unwrap();
-    let person = parse_json(output.as_str().to_string());
-
-    println!("Please call {} at the number {}", person.name, person.phones[0]);
-
-    match person.phones.get(1) {
-        Some(phone) => println!("The second phone number is: {}", phone),
-        None => println!("There is no second phone number."),
-    }
+    println!("{:?}", person);
 
     Ok(())
 }
