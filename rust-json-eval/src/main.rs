@@ -1,19 +1,5 @@
 use serde::{Deserialize, Serialize};
-// use serde_json::Result;
-use std::path::{Path, PathBuf};
-
-use jrsonnet_evaluator::{error::LocError, EvaluationState, FileImportResolver};
-
-pub fn evaluate_from_file(path: &Path) -> Result<String, String> {
-    let state = EvaluationState::default();
-    state.with_stdlib();
-    state.set_import_resolver(Box::new(FileImportResolver::default()));
-
-    match evaluate(path, &state) {
-        Ok(val) => Ok(val),
-        Err(err) => Err(state.stringify_err(&err)),
-    }
-}
+use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Person {
@@ -22,17 +8,30 @@ struct Person {
     phones: Vec<String>,
 }
 
-fn evaluate(path: &Path, state: &EvaluationState) -> Result<String, LocError> {
-    let val = state.import(state.resolve_file(&PathBuf::new(), &opts.input.input)?)?
-    let result = state.manifest(val)?;
-    Ok(result.to_string())
-}
+use rsjsonnet_lang::program::Value;
 
 fn main() -> Result<(), String> {
-    let result = evaluate_from_file(&PathBuf::from("example.jsonnet"))?;
+    let source_path = Path::new("example.jsonnet");
 
-    let person = serde_json::from_str::<Person>(&result).map_err(|e| e.to_string())?;
+    let mut session = rsjsonnet_front::Session::new();
+    let name = session.program().str_interner().intern("name");
+    let name_value = Value::string("shia");
+    let name_thunk = session.program_mut().value_to_thunk(&name_value);
+    session.program_mut().add_ext_var(name, &name_thunk);
 
+    let Some(thunk) = session.load_real_file(source_path) else {
+        return Err("Failed to load file".to_string());
+    };
+
+    let Some(value) = session.eval_value(&thunk) else {
+        return Err("Failed to evaluate file".to_string());
+    };
+
+    let Some(json) = session.manifest_json(&value, true) else {
+        return Err("Failed to evaluate file".to_string());
+    };
+
+    let person = serde_json::from_str::<Person>(&json).unwrap();
     println!("{:?}", person);
 
     Ok(())
