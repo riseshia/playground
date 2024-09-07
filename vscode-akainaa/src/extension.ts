@@ -3,23 +3,24 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { text } from 'stream/consumers';
 
 function getCoverageData(): Record<string, number[]> | null {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {return null;}
 
-    const coverageFilePath = path.join(workspaceFolders[0].uri.fsPath, 'coverage.json');
+    const coverageFilePath = path.join(workspaceFolders[0].uri.fsPath, 'tmp/coverage.json');
     if (!fs.existsSync(coverageFilePath)) {return null;}
 
     const coverageData = JSON.parse(fs.readFileSync(coverageFilePath, 'utf8'));
     return coverageData;
 }
 
-const decorationType = vscode.window.createTextEditorDecorationType({
-    isWholeLine: true,
-    backgroundColor: new vscode.ThemeColor("editorInlayHint.background"),
-});
+const decorationTypes: vscode.TextEditorDecorationType[] = [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+    vscode.window.createTextEditorDecorationType({
+        backgroundColor: `rgba(255, 0, 0, ${i * 0.125})`,
+        isWholeLine: true
+    })
+));
 
 function updateDecorations() {
     console.log('updateDecorations called');
@@ -38,32 +39,38 @@ function updateDecorations() {
     const fileCoverage = coverageData[filePathFromPrjDir];
     if (!fileCoverage) {return;}
 
-    const decorations: vscode.DecorationOptions[] = [];
+    let decorations: {
+        decorationType: vscode.TextEditorDecorationType,
+        decoration: { range: vscode.Range }[],
+    }[] = [0, 1, 2, 3, 4, 5, 6, 7].map(i => ({
+        decorationType: decorationTypes[i],
+        decoration: [],
+    }));
+
+    const maxExecuted = Math.max(...fileCoverage, 9) + 1;
+
     for (let lineNumber = 0; lineNumber < fileCoverage.length; lineNumber++) {
         const count = fileCoverage[lineNumber];
-        let text = '';
-        if (count && count > 0) {
-            const paddedCount = `${count ?? ''}`.padStart(4, ' ');
-            text = ` executed: ${paddedCount}`;
-        }
-        
+        if (!count) {continue;}
+        if (count === 0) {continue;}
+
+        const opacityLevel = Math.floor(count * 8 / maxExecuted);
+
+        const line = editor.document.lineAt(lineNumber);
+
         const decoration = {
-            range: new vscode.Range(lineNumber, 0, lineNumber, 0),
-            renderOptions: {
-                after: {
-                    contentText: text,
-                    color: 'grey',
-                }
-            }
+            range: line.range,
         };
-        decorations.push(decoration);
+        decorations[opacityLevel].decoration.push(decoration);
     }
 
-    editor.setDecorations(decorationType, decorations);
+    decorations.forEach(({ decorationType, decoration }) => {
+        editor.setDecorations(decorationType, decoration);
+    });
 }
 
 function watchCoverageFile(context: vscode.ExtensionContext) {
-    const coverageWatcher = vscode.workspace.createFileSystemWatcher('**/coverage.json');
+    const coverageWatcher = vscode.workspace.createFileSystemWatcher('tmp/coverage.json');
 
     coverageWatcher.onDidChange(() => updateDecorations());
     coverageWatcher.onDidCreate(() => updateDecorations());
