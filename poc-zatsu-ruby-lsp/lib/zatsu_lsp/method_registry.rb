@@ -6,16 +6,22 @@ module ZatsuLsp
       @registry = {}
     end
 
-    def add(const_name, node, path)
-      @registry[const_name] = Node::Node.new(path, node)
+    def add(const_name, node, path, singleton:)
+      id = build_id(const_name, node.name, singleton: singleton)
+
+      @registry[id] = Node::Node.new(path, node)
     end
 
-    def remove(const_name)
-      @registry.delete(const_name)
+    def remove(const_name, method_name)
+      singleton = node.receiver&.is_a?(Prism::SelfNode)
+      id = build_id(const_name, method_name, singleton: singleton)
+
+      @registry.delete(id)
     end
 
-    def find(const_name)
-      @registry[const_name]
+    def find(const_name, method_name, visibility:, singleton: false)
+      id = build_id(const_name, method_name, singleton: singleton)
+      @registry[id]
     end
 
     def all_keys
@@ -24,6 +30,11 @@ module ZatsuLsp
 
     def clear
       @registry.clear
+    end
+
+    private def build_id(const_name, method_name, singleton:)
+      middle = singleton ? "." : "#"
+      "#{const_name}#{middle}#{method_name}"
     end
   end
 end

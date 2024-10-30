@@ -13,18 +13,22 @@ module ZatsuLsp
         file_path: "sample/sample.rb",
       )
     end
-    let(:code) do
-      ''
-    end
 
     before(:each) do
       parse_result = Prism.parse(code)
       parse_result.value.accept(visitor)
     end
 
-    describe "#add_workspace" do
-      it "adds a workspace" do
-        ZatsuLsp.add_workspace("sample/")
+    context "when simple class" do
+      let(:code) do
+        <<~CODE
+          class Post
+          end
+        CODE
+      end
+
+      it "registers class" do
+        expect(const_registry.find("Post")).not_to be_nil
       end
     end
   end

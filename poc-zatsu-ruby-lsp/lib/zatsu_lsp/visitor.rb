@@ -15,6 +15,7 @@ module ZatsuLsp
       @type_var_registry = type_var_registry
       @file_path = file_path
       @current_scope = []
+      @in_singleton = false
     end
 
     def visit_module_node(node)
@@ -37,6 +38,12 @@ module ZatsuLsp
       end
     end
 
+    def visit_singleton_class_node(node)
+      in_singleton do
+        super
+      end
+    end
+
     def visit_constant_write_node(node)
       # we need this some day
       # const_names = extract_const_names(node.constant_path)
@@ -48,7 +55,11 @@ module ZatsuLsp
 
     def visit_def_node(node)
       qualified_const_name = build_qualified_const_name([])
-      @method_registry.add(qualified_const_name, node, @file_path)
+      singleton = node.receiver&.is_a?(Prism::SelfNode) || @in_singleton
+      @method_registry.add(
+        qualified_const_name, node, @file_path,
+        singleton: singleton
+      )
 
       super
     end
@@ -56,19 +67,19 @@ module ZatsuLsp
     def visit_local_variable_write_node(node)
       # qualified_const_name = build_qualified_const_name([])
       # @method_registry.add(qualified_const_name, node, @file_path)
-      puts "in  local_variable_write_node: #{node.name}"
+      # puts "in  local_variable_write_node: #{node.name}"
       super
-      puts "out local_variable_write_node: #{node.name}"
+      # puts "out local_variable_write_node: #{node.name}"
     end
 
     def visit_call_node(node)
       # qualified_const_name = build_qualified_const_name([])
       # @method_registry.add(qualified_const_name, node, @file_path)
 
-      puts "in  call_node: #{node.name}"
+      # puts "in  call_node: #{node.name}"
       # pp node
       super
-      puts "out call_node: #{node.name}"
+      # puts "out call_node: #{node.name}"
     end
 
     private def extract_const_names(const_read_node_or_const_path_node)
@@ -98,6 +109,13 @@ module ZatsuLsp
       @current_scope.push(*const_names)
       yield
       const_names.size.times { @current_scope.pop }
+    end
+
+    private def in_singleton
+      prev_in_singleton = @in_singleton
+      @in_singleton = true
+      yield
+      @in_singleton = prev_in_singleton
     end
   end
 end
