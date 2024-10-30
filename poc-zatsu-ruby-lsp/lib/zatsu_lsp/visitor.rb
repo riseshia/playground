@@ -16,6 +16,7 @@ module ZatsuLsp
       @file_path = file_path
       @current_scope = []
       @in_singleton = false
+      @current_method_name = false
     end
 
     def visit_module_node(node)
@@ -55,18 +56,31 @@ module ZatsuLsp
 
     def visit_def_node(node)
       qualified_const_name = build_qualified_const_name([])
-      singleton = node.receiver&.is_a?(Prism::SelfNode) || @in_singleton
+      singleton = node.receiver.is_a?(Prism::SelfNode) || @in_singleton
+
       @method_registry.add(
         qualified_const_name, node, @file_path,
         singleton: singleton
       )
 
-      super
+      in_method(node.name) do
+        super
+      end
     end
 
     def visit_local_variable_write_node(node)
-      # qualified_const_name = build_qualified_const_name([])
-      # @method_registry.add(qualified_const_name, node, @file_path)
+      qualified_const_name = build_qualified_const_name([])
+
+      tv = TypeVariable::LocalVar.new(
+        const_name: qualified_const_name,
+        method_name: @current_method_name,
+        singleton: @in_singleton,
+        path: @file_path,
+        name: gen_ssa_name(node.name),
+        node: node,
+      )
+
+      @type_var_registry.add(tv)
       # puts "in  local_variable_write_node: #{node.name}"
       super
       # puts "out local_variable_write_node: #{node.name}"
@@ -116,6 +130,20 @@ module ZatsuLsp
       @in_singleton = true
       yield
       @in_singleton = prev_in_singleton
+    end
+
+    private def in_method(method_name)
+      prev_in_method_name = @current_method_name
+      @current_method_name = method_name
+      @ssa_counter = Hash.new(-1)
+
+      yield
+      @current_method_name = prev_in_method_name
+    end
+
+    private def gen_ssa_name(name)
+      @ssa_counter[name] += 1
+      "#{name}_#{@ssa_counter[name]}"
     end
   end
 end

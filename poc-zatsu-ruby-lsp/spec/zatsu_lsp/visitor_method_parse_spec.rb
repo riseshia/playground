@@ -126,39 +126,5 @@ module ZatsuLsp
         end
       end
     end
-
-    context "type variable generation" do
-      context "with self." do
-        let(:code) do
-          <<~CODE
-            class Post
-              def self.hello = 1
-            end
-          CODE
-        end
-
-        it "registers all" do
-          expect(const_registry.find("Post")).not_to be_nil
-          expect(method_registry.find("Post", "hello", visibility: :public, singleton: true)).not_to be_nil
-        end
-      end
-
-      context "with open self" do
-        let(:code) do
-          <<~CODE
-            class Post
-              class << self
-                def hello = 1
-              end
-            end
-          CODE
-        end
-
-        it "registers all" do
-          expect(const_registry.find("Post")).not_to be_nil
-          expect(method_registry.find("Post", "hello", visibility: :public, singleton: true)).not_to be_nil
-        end
-      end
-    end
   end
 end

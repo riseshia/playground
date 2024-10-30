@@ -6,16 +6,16 @@ module ZatsuLsp
       @registry = {}
     end
 
-    def add(const_name, node, path)
-      @registry[const_name] = TypeVariable.new(path, name, node)
+    def add(var)
+      @registry[var.id] = var
     end
 
-    def remove(const_name)
-      @registry.delete(const_name)
+    def remove(node_id)
+      @registry.delete(node_id)
     end
 
-    def find(const_name)
-      @registry[const_name]
+    def find(node_id)
+      @registry[node_id]
     end
 
     def all_keys

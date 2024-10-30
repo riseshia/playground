@@ -1,20 +1,34 @@
 # frozen_string_literal: true
 
 module ZatsuLsp
-  class TypeVariable
-    attr_reader :id, :candidates, :depends, :affect_to, :node, :path, :stable
+  module TypeVariable
+    class Base
+      attr_reader :id, :candidates, :depends, :affect_to, :node, :path, :stable
 
-    def initialize(path, name, node)
-      @id = build_id(name)
-      @path = path
-      @node = node
-      @candidates = []
-      @depends = []
-      @affect_to = []
-      @stable = false
+      def initialize(
+        const_name:,
+        method_name:,
+        singleton:,
+        path:,
+        name:,
+        node:
+      )
+        @id = build_id(const_name, method_name, singleton, name)
+        @path = path
+        @node = node
+        @candidates = []
+        @depends = []
+        @affect_to = []
+        @stable = false
+      end
+
+      private def build_id(const_name, method_name, singleton, name)
+        middle = singleton ? "." : "#"
+        "#{const_name}#{middle}#{method_name}_#{name}"
+      end
     end
 
-    private def build_id(name)
+    class LocalVar < Base
     end
   end
 end
