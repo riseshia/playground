@@ -53,6 +53,27 @@ module ZatsuLsp
           expect(tv1).not_to be_nil
         end
       end
+
+      context "with lvar assign twice and chain" do
+        let(:code) do
+          <<~CODE
+            def hello
+              a = 1
+              a = a + 2
+            end
+          CODE
+        end
+
+        it "registers all" do
+          tv0 = type_var_registry.find("#hello_a_0")
+          tv1 = type_var_registry.find("#hello_a_1")
+
+          expect(tv0).not_to be_nil
+          expect(tv0.affect_to).to eq([tv1])
+          expect(tv1).not_to be_nil
+          expect(tv1.depends).to eq([tv0])
+        end
+      end
     end
   end
 end
