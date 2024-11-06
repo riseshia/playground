@@ -88,17 +88,23 @@ module ZatsuLsp
     def visit_call_node(node)
       call_tv = find_or_create_tv(node)
 
-      receiver_tv = find_or_create_tv(node.receiver)
-      call_tv.add_receiver(receiver_tv)
-      arg_tvs = node.arguments.arguments.map do |arg|
-        find_or_create_tv(arg).tap do |arg_tv|
-          call_tv.add_arg(arg_tv)
-        end
+      depend_tvs = []
+      if node.receiver
+        receiver_tv = find_or_create_tv(node.receiver)
+        call_tv.add_receiver(receiver_tv)
+        depend_tvs.push(receiver_tv)
       end
+
+      node.arguments&.arguments&.each do |arg|
+        arg_tv = find_or_create_tv(arg)
+        call_tv.add_arg(arg_tv)
+        depend_tvs.push(arg_tv)
+      end
+
       qualified_const_name = build_qualified_const_name([])
       call_tv.add_scope(qualified_const_name)
 
-      [receiver_tv, *arg_tvs].each do |tv|
+      depend_tvs.each do |tv|
         if tv.is_a?(TypeVariable::LvarRead)
           lvar_ref = @lvars.reverse_each { |lvar| break lvar if lvar.name == tv.name }
           lvar_ref.add_dependent(tv)

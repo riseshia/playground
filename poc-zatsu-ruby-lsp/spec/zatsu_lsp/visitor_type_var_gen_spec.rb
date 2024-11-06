@@ -83,6 +83,24 @@ module ZatsuLsp
           expect(two.dependents).to eq([plus])
         end
       end
+
+      context "with method call" do
+        let(:code) do
+          <<~CODE
+            def hello
+              a + 1
+            end
+          CODE
+        end
+
+        it "registers all" do
+          plus, a0, one = type_var_registry.all
+
+          expect(plus.dependencies).to eq([a0, one])
+          expect(a0.dependents).to eq([plus])
+          expect(one.dependents).to eq([plus])
+        end
+      end
     end
   end
 end
