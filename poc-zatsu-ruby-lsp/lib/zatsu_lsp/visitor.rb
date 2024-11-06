@@ -58,12 +58,12 @@ module ZatsuLsp
       qualified_const_name = build_qualified_const_name([])
       singleton = node.receiver.is_a?(Prism::SelfNode) || @in_singleton
 
-      @method_registry.add(
+      method_obj = @method_registry.add(
         qualified_const_name, node, @file_path,
         singleton: singleton
       )
 
-      in_method(node.name) do
+      in_method(node.name, method_obj) do
         super
       end
     end
@@ -160,13 +160,18 @@ module ZatsuLsp
       @in_singleton = prev_in_singleton
     end
 
-    private def in_method(method_name)
+    private def in_method(method_name, method_obj)
       prev_in_method_name = @current_method_name
       @current_method_name = method_name
+      prev_method_obj = @current_method_obj
+      @current_method_obj = method_obj
       @lvars = []
+
       yield
+
       @lvars = []
       @current_method_name = prev_in_method_name
+      @current_method_obj = prev_method_obj
     end
 
     private def find_or_create_tv(node)
