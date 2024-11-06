@@ -69,31 +69,53 @@ module ZatsuLsp
     end
 
     def visit_local_variable_write_node(node)
-      qualified_const_name = build_qualified_const_name([])
+      lvar_node = node
+      lvar_tv = find_or_create_tv(lvar_node)
 
-      tv = TypeVariable::LocalVar.new(
-        const_name: qualified_const_name,
-        method_name: @current_method_name,
-        singleton: @in_singleton,
-        path: @file_path,
-        name: gen_ssa_name(node.name),
-        node: node,
-      )
+      value_node = node.value
+      value_tv = find_or_create_tv(value_node)
 
-      @type_var_registry.add(tv)
-      # puts "in  local_variable_write_node: #{node.name}"
+      lvar_tv.add_dependency(value_tv)
+      value_tv.add_dependent(lvar_tv)
+
+      @type_var_registry.add(lvar_tv)
+
       super
-      # puts "out local_variable_write_node: #{node.name}"
+
+      @lvars.push(lvar_tv)
     end
 
     def visit_call_node(node)
-      # qualified_const_name = build_qualified_const_name([])
-      # @method_registry.add(qualified_const_name, node, @file_path)
+      call_tv = find_or_create_tv(node)
 
-      # puts "in  call_node: #{node.name}"
-      # pp node
+      receiver_tv = find_or_create_tv(node.receiver)
+      call_tv.add_receiver(receiver_tv)
+      arg_tvs = node.arguments.arguments.map do |arg|
+        find_or_create_tv(arg).tap do |arg_tv|
+          call_tv.add_arg(arg_tv)
+        end
+      end
+      qualified_const_name = build_qualified_const_name([])
+      call_tv.add_scope(qualified_const_name)
+
+      [receiver_tv, *arg_tvs].each do |tv|
+        if tv.is_a?(TypeVariable::LvarRead)
+          lvar_ref = @lvars.reverse_each { |lvar| break lvar if lvar.name == tv.name }
+          lvar_ref.add_dependent(tv)
+          tv.add_dependency(lvar_ref)
+        else
+          next
+        end
+      end
+
       super
-      # puts "out call_node: #{node.name}"
+    end
+
+    def visit_integer_node(node)
+      value_tv = find_or_create_tv(node)
+      value_tv.correct_type(Type::Integer.new)
+
+      super
     end
 
     private def extract_const_names(const_read_node_or_const_path_node)
@@ -135,15 +157,50 @@ module ZatsuLsp
     private def in_method(method_name)
       prev_in_method_name = @current_method_name
       @current_method_name = method_name
-      @ssa_counter = Hash.new(-1)
-
+      @lvars = []
       yield
+      @lvars = []
       @current_method_name = prev_in_method_name
     end
 
-    private def gen_ssa_name(name)
-      @ssa_counter[name] += 1
-      "#{name}_#{@ssa_counter[name]}"
+    private def find_or_create_tv(node)
+      tv = @type_var_registry.find(node.node_id)
+      return tv if tv
+
+      tv =
+        case node
+        when Prism::LocalVariableReadNode
+          TypeVariable::LvarRead.new(
+            path: @file_path,
+            name: node.name.to_s,
+            node: node,
+          )
+        when Prism::LocalVariableWriteNode
+          TypeVariable::LvarWrite.new(
+            path: @file_path,
+            name: node.name.to_s,
+            node: node,
+          )
+        when Prism::CallNode
+          TypeVariable::Call.new(
+            path: @file_path,
+            name: node.name.to_s,
+            node: node,
+          )
+        when Prism::IntegerNode
+          TypeVariable::Static.new(
+            path: @file_path,
+            name: node.value.to_s,
+            node: node,
+          )
+        else
+          pp node
+          raise "unknown type variable node: #{node.class}"
+        end
+
+      @type_var_registry.add(tv)
+
+      tv
     end
   end
 end

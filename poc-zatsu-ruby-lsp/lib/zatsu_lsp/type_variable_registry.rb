@@ -22,6 +22,10 @@ module ZatsuLsp
       @registry.keys
     end
 
+    def all
+      @registry.values
+    end
+
     def clear
       @registry.clear
     end

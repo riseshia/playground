@@ -2,20 +2,33 @@
 
 module ZatsuLsp
   module Type
-    class Any
+    class Base
+      def to_human_s
+        raise NotImplementedError
+      end
+    end
+
+    class Any < Base
       def to_human_s
         "any"
       end
     end
 
-    class Nil
+    class Nil < Base
       def to_human_s
         "nil"
       end
     end
 
-    class Union
+    class Integer < Base
+      def to_human_s
+        "Integer"
+      end
+    end
+
+    class Union < Base
       def initialize(element_types)
+        super
         @element_types = element_types
       end
 
@@ -24,8 +37,9 @@ module ZatsuLsp
       end
     end
 
-    class Array
+    class Array < Base
       def initialize(element_types)
+        super
         @element_types = element_types
       end
 
@@ -34,8 +48,9 @@ module ZatsuLsp
       end
     end
 
-    class Hash
+    class Hash < Base
       def initialize(key_types, value_types)
+        super
         @key_types = key_types
         @value_types = value_types
       end
@@ -45,6 +60,12 @@ module ZatsuLsp
         value_types = @value_types.map(&:to_human_s).join(' | ')
         "{#{key_types} => #{value_types}}"
       end
+    end
+
+    module_function
+
+    def any
+      Any.new
     end
   end
 end

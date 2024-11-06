@@ -3,32 +3,70 @@
 module ZatsuLsp
   module TypeVariable
     class Base
-      attr_reader :id, :candidates, :depends, :affect_to, :node, :path, :stable
+      attr_reader :id, :name, :node, :path, :stable,
+                  :candidates, :dependencies, :dependents
 
-      def initialize(
-        const_name:,
-        method_name:,
-        singleton:,
-        path:,
-        name:,
-        node:
-      )
-        @id = build_id(const_name, method_name, singleton, name)
+      def initialize(path:, name:, node:)
+        @id = node.node_id
         @path = path
+        @name = name
         @node = node
+
         @candidates = []
-        @depends = []
-        @affect_to = []
+        @dependencies = []
+        @dependents = []
         @stable = false
       end
 
-      private def build_id(const_name, method_name, singleton, name)
-        middle = singleton ? "." : "#"
-        "#{const_name}#{middle}#{method_name}_#{name}"
+      def add_dependency(type_var)
+        @dependencies << type_var
+      end
+
+      def add_dependent(type_var)
+        @dependents << type_var
+      end
+
+      def inference
+        raise NotImplementedError
       end
     end
 
-    class LocalVar < Base
+    class LvarWrite < Base
+    end
+
+    class LvarRead < Base
+    end
+
+    class Static < Base
+      def correct_type(type)
+        @candidates = [type]
+      end
+    end
+
+    class Call < Base
+      attr_reader :receiver, :args, :scope
+
+      def initialize(path:, name:, node:)
+        super
+        @receiver = nil
+        @args = []
+      end
+
+      def add_receiver(receiver)
+        @receiver = receiver
+        @dependencies << receiver
+        receiver.add_dependent(self)
+      end
+
+      def add_arg(arg)
+        @args << arg
+        @dependencies << arg
+        arg.add_dependent(self)
+      end
+
+      def add_scope(const_name)
+        @scope = const_name
+      end
     end
   end
 end

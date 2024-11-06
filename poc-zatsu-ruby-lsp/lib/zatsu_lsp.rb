@@ -3,6 +3,7 @@
 require "prism"
 
 require "zatsu_lsp/node"
+require "zatsu_lsp/type"
 require "zatsu_lsp/type_variable"
 
 require "zatsu_lsp/const_registry"

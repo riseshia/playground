@@ -30,8 +30,12 @@ module ZatsuLsp
         end
 
         it "registers all" do
-          tv = type_var_registry.find("#hello_a_0")
-          expect(tv).not_to be_nil
+          a, one = type_var_registry.all
+          expect(a.name).to eq("a")
+          expect(one.name).to eq("1")
+
+          expect(a.dependencies).to eq([one])
+          expect(one.dependents).to eq([a])
         end
       end
 
@@ -46,11 +50,12 @@ module ZatsuLsp
         end
 
         it "registers all" do
-          tv0 = type_var_registry.find("#hello_a_0")
-          tv1 = type_var_registry.find("#hello_a_1")
+          a0, one, a1, two = type_var_registry.all
 
-          expect(tv0).not_to be_nil
-          expect(tv1).not_to be_nil
+          expect(a0.dependencies).to eq([one])
+          expect(one.dependents).to eq([a0])
+          expect(a1.dependencies).to eq([two])
+          expect(two.dependents).to eq([a1])
         end
       end
 
@@ -65,13 +70,17 @@ module ZatsuLsp
         end
 
         it "registers all" do
-          tv0 = type_var_registry.find("#hello_a_0")
-          tv1 = type_var_registry.find("#hello_a_1")
+          a0, one, a1, plus, a2, two = type_var_registry.all
 
-          expect(tv0).not_to be_nil
-          expect(tv0.affect_to).to eq([tv1])
-          expect(tv1).not_to be_nil
-          expect(tv1.depends).to eq([tv0])
+          expect(a0.dependencies).to eq([one])
+          expect(one.dependents).to eq([a0])
+          expect(a1.dependencies).to eq([plus])
+          expect(plus.dependencies).to eq([a2, two])
+          expect(plus.dependents).to eq([a1])
+          expect(plus.scope).to eq("")
+          expect(a2.dependencies).to eq([a0])
+          expect(a2.dependents).to eq([plus])
+          expect(two.dependents).to eq([plus])
         end
       end
     end
