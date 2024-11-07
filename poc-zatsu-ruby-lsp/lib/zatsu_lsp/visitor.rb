@@ -83,6 +83,7 @@ module ZatsuLsp
       super
 
       @lvars.push(lvar_tv)
+      @last_evaluated_tv = lvar_tv
     end
 
     def visit_call_node(node)
@@ -115,6 +116,8 @@ module ZatsuLsp
       end
 
       super
+
+      @last_evaluated_tv = call_tv
     end
 
     def visit_integer_node(node)
@@ -122,6 +125,8 @@ module ZatsuLsp
       value_tv.correct_type(Type::Integer.new)
 
       super
+
+      @last_evaluated_tv = value_tv
     end
 
     private def extract_const_names(const_read_node_or_const_path_node)
@@ -166,10 +171,14 @@ module ZatsuLsp
       prev_method_obj = @current_method_obj
       @current_method_obj = method_obj
       @lvars = []
+      @return_tvs = []
+      @last_evaluated_tv = nil
 
       yield
 
-      @lvars = []
+      [*@return_tvs, @last_evaluated_tv].compact.each do |tv|
+        @current_method_obj.add_return_tv(tv)
+      end
       @current_method_name = prev_in_method_name
       @current_method_obj = prev_method_obj
     end

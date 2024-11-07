@@ -7,7 +7,7 @@ module ZatsuLsp
     end
 
     def add(const_name, node, path)
-      @registry[const_name] = Node::Node.new(path, node)
+      @registry[const_name] = Constant.new(path, node)
     end
 
     def remove(const_name)

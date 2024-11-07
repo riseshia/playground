@@ -9,7 +9,7 @@ module ZatsuLsp
     def add(const_name, node, path, singleton:)
       id = build_id(const_name, node.name, singleton: singleton)
 
-      @registry[id] = Node::Node.new(path, node)
+      @registry[id] = Method.new(path: path, node: node)
     end
 
     def remove(const_name, method_name)

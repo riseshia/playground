@@ -36,6 +36,9 @@ module ZatsuLsp
 
           expect(a.dependencies).to eq([one])
           expect(one.dependents).to eq([a])
+
+          method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
+          expect(method_obj.return_tvs).to eq([a])
         end
       end
 
@@ -56,6 +59,9 @@ module ZatsuLsp
           expect(one.dependents).to eq([a0])
           expect(a1.dependencies).to eq([two])
           expect(two.dependents).to eq([a1])
+
+          method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
+          expect(method_obj.return_tvs).to eq([a1])
         end
       end
 
@@ -81,6 +87,9 @@ module ZatsuLsp
           expect(a2.dependencies).to eq([a0])
           expect(a2.dependents).to eq([plus])
           expect(two.dependents).to eq([plus])
+
+          method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
+          expect(method_obj.return_tvs).to eq([a1])
         end
       end
 
@@ -99,6 +108,9 @@ module ZatsuLsp
           expect(plus.dependencies).to eq([a0, one])
           expect(a0.dependents).to eq([plus])
           expect(one.dependents).to eq([plus])
+
+          method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
+          expect(method_obj.return_tvs).to eq([plus])
         end
       end
     end
