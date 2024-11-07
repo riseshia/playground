@@ -68,6 +68,34 @@ module ZatsuLsp
       end
     end
 
+    def visit_required_parameter_node(node)
+      tv = find_or_create_tv(node)
+      @current_method_obj.add_arg_tv(tv)
+
+      super
+
+      @lvars.push(tv)
+    end
+
+    def visit_return_node(node)
+      if node.arguments.nil?
+        # means return nil, so mimic it
+        tv = TypeVariable::Static.new(
+          path: @file_path,
+          name: "Prism::NilNode",
+          node: node,
+        )
+        @type_var_registry.add(tv)
+      else
+        node.arguments.arguments.each do |arg|
+          arg_tv = find_or_create_tv(arg)
+          @return_tvs.push(arg_tv)
+        end
+      end
+
+      super
+    end
+
     def visit_local_variable_write_node(node)
       lvar_node = node
       lvar_tv = find_or_create_tv(lvar_node)
@@ -107,9 +135,12 @@ module ZatsuLsp
 
       depend_tvs.each do |tv|
         if tv.is_a?(TypeVariable::LvarRead)
-          lvar_ref = @lvars.reverse_each { |lvar| break lvar if lvar.name == tv.name }
-          lvar_ref.add_dependent(tv)
-          tv.add_dependency(lvar_ref)
+          lvar_ref = @lvars.reverse_each.find { |lvar| lvar.name == tv.name }
+
+          if lvar_ref
+            lvar_ref.add_dependent(tv)
+            tv.add_dependency(lvar_ref)
+          end
         else
           next
         end
@@ -123,6 +154,24 @@ module ZatsuLsp
     def visit_integer_node(node)
       value_tv = find_or_create_tv(node)
       value_tv.correct_type(Type::Integer.new)
+
+      super
+
+      @last_evaluated_tv = value_tv
+    end
+
+    def visit_true_node(node)
+      value_tv = find_or_create_tv(node)
+      value_tv.correct_type(Type::True.new)
+
+      super
+
+      @last_evaluated_tv = value_tv
+    end
+
+    def visit_false_node(node)
+      value_tv = find_or_create_tv(node)
+      value_tv.correct_type(Type::False.new)
 
       super
 
@@ -189,6 +238,12 @@ module ZatsuLsp
 
       tv =
         case node
+        when Prism::RequiredParameterNode
+          TypeVariable::Arg.new(
+            path: @file_path,
+            name: node.name.to_s,
+            node: node,
+          )
         when Prism::LocalVariableReadNode
           TypeVariable::LvarRead.new(
             path: @file_path,
@@ -211,6 +266,12 @@ module ZatsuLsp
           TypeVariable::Static.new(
             path: @file_path,
             name: node.value.to_s,
+            node: node,
+          )
+        when Prism::TrueNode, Prism::FalseNode, Prism::NilNode
+          TypeVariable::Static.new(
+            path: @file_path,
+            name: node.class.name,
             node: node,
           )
         else

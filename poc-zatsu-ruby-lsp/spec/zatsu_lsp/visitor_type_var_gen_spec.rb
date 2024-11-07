@@ -113,6 +113,31 @@ module ZatsuLsp
           expect(method_obj.return_tvs).to eq([plus])
         end
       end
+
+      context "with lvar assign" do
+        let(:code) do
+          <<~CODE
+            def hello(a)
+              return true if a > 1
+              false
+            end
+          CODE
+        end
+
+        it "registers all" do
+          a0, gt, a1, one, true0, false0 = type_var_registry.all
+
+          expect(a0.dependents).to eq([a1])
+          expect(gt.dependencies).to eq([a1, one])
+          expect(a1.dependents).to eq([gt])
+          expect(one.dependents).to eq([gt])
+          expect(true0.inference).to eq("true")
+          expect(false0.inference).to eq("false")
+
+          method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
+          expect(method_obj.return_tvs).to eq([true0, false0])
+        end
+      end
     end
   end
 end

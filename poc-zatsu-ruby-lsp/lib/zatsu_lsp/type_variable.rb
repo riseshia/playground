@@ -15,7 +15,7 @@ module ZatsuLsp
         @candidates = []
         @dependencies = []
         @dependents = []
-        @stable = false
+        # @stable = false
       end
 
       def add_dependency(type_var)
@@ -31,15 +31,17 @@ module ZatsuLsp
       end
     end
 
-    class LvarWrite < Base
-    end
-
-    class LvarRead < Base
-    end
+    class Arg < Base; end
+    class LvarWrite < Base; end
+    class LvarRead < Base; end
 
     class Static < Base
       def correct_type(type)
-        @candidates = [type]
+        @candidates << type
+      end
+
+      def inference
+        @candidates.first.to_human_s
       end
     end
 

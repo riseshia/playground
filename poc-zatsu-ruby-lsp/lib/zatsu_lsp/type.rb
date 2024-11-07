@@ -20,6 +20,18 @@ module ZatsuLsp
       end
     end
 
+    class True < Base
+      def to_human_s
+        "true"
+      end
+    end
+
+    class False < Base
+      def to_human_s
+        "false"
+      end
+    end
+
     class Integer < Base
       def to_human_s
         "Integer"
