@@ -272,6 +272,7 @@ module ZatsuLsp
       @lvars = prev_lvars
       @return_tvs.each do |tv|
         @current_method_obj.add_return_tv(tv)
+        tv.leaf!
       end
       @current_method_name = prev_in_method_name
       @current_method_obj = prev_method_obj
