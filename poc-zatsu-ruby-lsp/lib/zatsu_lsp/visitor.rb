@@ -15,8 +15,12 @@ module ZatsuLsp
       @type_var_registry = type_var_registry
       @file_path = file_path
       @current_scope = []
+      @lvars = []
       @in_singleton = false
-      @current_method_name = false
+      @current_method_name = nil
+      @current_method_obj = nil
+      @current_if_cond_tv = nil
+      @last_evaluated_tv_stack = []
     end
 
     def visit_module_node(node)
@@ -114,6 +118,35 @@ module ZatsuLsp
       @last_evaluated_tv = lvar_tv
     end
 
+    def visit_if_node(node)
+      if_cond_tv = find_or_create_tv(node)
+      predicate_tv = find_or_create_tv(node.predicate)
+      if_cond_tv.add_predicate(predicate_tv)
+
+      in_if_cond(if_cond_tv) do
+        super
+      end
+      @last_evaluated_tv = if_cond_tv
+    end
+
+    def visit_statements_node(node)
+      @last_evaluated_tv_stack.push(@last_evaluated_tv)
+      @last_evaluated_tv = nil
+
+      super
+
+      if in_if_cond?
+        @current_if_cond_tv.add_dependency(@last_evaluated_tv)
+        @last_evaluated_tv.add_dependent(@current_if_cond_tv)
+      else
+        if in_method?
+          @return_tvs.push(@last_evaluated_tv)
+        end
+      end
+
+      @last_evaluated_tv = @last_evaluated_tv_stack.pop
+    end
+
     def visit_call_node(node)
       call_tv = find_or_create_tv(node)
 
@@ -201,6 +234,17 @@ module ZatsuLsp
       (@current_scope + const_names).map(&:to_s).join("::")
     end
 
+    private def in_if_cond(if_cond_tv)
+      prev_in_if_cond_tv = @current_if_cond_tv
+      @current_if_cond_tv = if_cond_tv
+      yield
+      @current_if_cond_tv = prev_in_if_cond_tv
+    end
+
+    private def in_if_cond?
+      @current_if_cond_tv
+    end
+
     private def in_scope(const_names)
       @current_scope.push(*const_names)
       yield
@@ -219,17 +263,22 @@ module ZatsuLsp
       @current_method_name = method_name
       prev_method_obj = @current_method_obj
       @current_method_obj = method_obj
+      prev_lvars = @lvars
       @lvars = []
       @return_tvs = []
-      @last_evaluated_tv = nil
 
       yield
 
-      [*@return_tvs, @last_evaluated_tv].compact.each do |tv|
+      @lvars = prev_lvars
+      @return_tvs.each do |tv|
         @current_method_obj.add_return_tv(tv)
       end
       @current_method_name = prev_in_method_name
       @current_method_obj = prev_method_obj
+    end
+
+    private def in_method?
+      @current_method_obj != nil
     end
 
     private def find_or_create_tv(node)
@@ -260,6 +309,12 @@ module ZatsuLsp
           TypeVariable::Call.new(
             path: @file_path,
             name: node.name.to_s,
+            node: node,
+          )
+        when Prism::IfNode
+          TypeVariable::If.new(
+            path: @file_path,
+            name: node.class.name,
             node: node,
           )
         when Prism::IntegerNode

@@ -70,5 +70,31 @@ module ZatsuLsp
         @scope = const_name
       end
     end
+
+    class If < Base
+      attr_reader :predicate, :if_stmt, :else_stmt
+
+      def initialize(path:, name:, node:)
+        super
+        @predicate = nil
+        @if_stmt = nil
+        @else_stmt = nil
+      end
+
+      def add_predicate(predicate)
+        @predicate = predicate
+        predicate.add_dependent(self)
+      end
+
+      def add_if_stmt(if_stmt)
+        @if_stmt = if_stmt
+        if_stmt.add_dependent(self)
+      end
+
+      def add_else_stmt(else_stmt)
+        @else_stmt = else_stmt
+        else_stmt.add_dependent(self)
+      end
+    end
   end
 end

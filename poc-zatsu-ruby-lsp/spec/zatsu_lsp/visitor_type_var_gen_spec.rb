@@ -114,7 +114,7 @@ module ZatsuLsp
         end
       end
 
-      context "with lvar assign" do
+      context "with method arg and return" do
         let(:code) do
           <<~CODE
             def hello(a)
@@ -125,17 +125,45 @@ module ZatsuLsp
         end
 
         it "registers all" do
-          a0, gt, a1, one, true0, false0 = type_var_registry.all
+          a0, if_cond, gt, a1, one, true0, false0 = type_var_registry.all
 
           expect(a0.dependents).to eq([a1])
+          expect(if_cond.dependencies).to eq([true0])
           expect(gt.dependencies).to eq([a1, one])
           expect(a1.dependents).to eq([gt])
           expect(one.dependents).to eq([gt])
+          expect(true0.dependents).to eq([if_cond])
           expect(true0.inference).to eq("true")
           expect(false0.inference).to eq("false")
 
           method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
           expect(method_obj.return_tvs).to eq([true0, false0])
+        end
+      end
+
+      context "with if and assign" do
+        let(:code) do
+          <<~CODE
+            ret =
+              if 1 > 2
+                true
+              else
+                false
+              end
+          CODE
+        end
+
+        it "registers all" do
+          ret, if_cond, gt, one, two, true0, false0 = type_var_registry.all
+
+          expect(ret.dependencies).to eq([if_cond])
+          expect(if_cond.dependencies).to eq([true0, false0])
+          expect(if_cond.dependents).to eq([ret])
+          expect(gt.dependencies).to eq([one, two])
+          expect(one.dependents).to eq([gt])
+          expect(two.dependents).to eq([gt])
+          expect(true0.dependents).to eq([if_cond])
+          expect(false0.dependents).to eq([if_cond])
         end
       end
     end
