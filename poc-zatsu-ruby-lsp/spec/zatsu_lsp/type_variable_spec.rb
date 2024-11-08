@@ -5,19 +5,19 @@ module ZatsuLsp
     describe "TypeVariable" do
       def true_tv
         TypeVariable::Static.new(path: "path", name: "Prism::TrueNode", node: nil).tap do |tv|
-          tv.correct_type(Type::True.new)
+          tv.correct_type(Type.true)
         end
       end
 
       def false_tv
         TypeVariable::Static.new(path: "path", name: "Prism::FalseNode", node: nil).tap do |tv|
-          tv.correct_type(Type::False.new)
+          tv.correct_type(Type.false)
         end
       end
 
       def integer_tv
         TypeVariable::Static.new(path: "path", name: "Prism::IntegerNode", node: nil).tap do |tv|
-          tv.correct_type(Type::Integer.new)
+          tv.correct_type(Type.integer)
         end
       end
 
@@ -25,7 +25,7 @@ module ZatsuLsp
         describe "#inference" do
           let(:tv) do
             described_class.new(path: "path", name: "Prism::TrueNode", node: nil).tap do |tv|
-              tv.correct_type(Type::True.new)
+              tv.correct_type(Type.true)
             end
           end
 
@@ -98,8 +98,8 @@ module ZatsuLsp
                 singleton: false
               )
               method_obj = ZatsuLsp.method_registry.find("Integer", "+", visibility: :public, singleton: false)
-              method_obj.add_arg_type("a", Type::Integer.new)
-              method_obj.add_return_type(Type::Integer.new)
+              method_obj.add_arg_type("a", Type.integer)
+              method_obj.add_return_type(Type.integer)
             end
           end
 

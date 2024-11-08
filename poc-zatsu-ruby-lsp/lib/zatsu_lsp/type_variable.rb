@@ -130,7 +130,7 @@ module ZatsuLsp
       def inference
         types = @dependencies.map(&:inference)
         if types.size == 1 # if cond without else
-          types.push(Type::Nil.new)
+          types.push(Type.nil)
         end
 
         Type::Union.build(types)

@@ -186,7 +186,7 @@ module ZatsuLsp
 
     def visit_integer_node(node)
       value_tv = find_or_create_tv(node)
-      value_tv.correct_type(Type::Integer.new)
+      value_tv.correct_type(Type.integer)
 
       super
 
@@ -195,7 +195,7 @@ module ZatsuLsp
 
     def visit_true_node(node)
       value_tv = find_or_create_tv(node)
-      value_tv.correct_type(Type::True.new)
+      value_tv.correct_type(Type.true)
 
       super
 
@@ -204,7 +204,7 @@ module ZatsuLsp
 
     def visit_false_node(node)
       value_tv = find_or_create_tv(node)
-      value_tv.correct_type(Type::False.new)
+      value_tv.correct_type(Type.false)
 
       super
 

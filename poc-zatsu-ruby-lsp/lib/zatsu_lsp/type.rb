@@ -93,6 +93,10 @@ module ZatsuLsp
 
     module_function
 
-    def any = Any.new
+    def any = (@any ||= Any.new)
+    def nil = (@nil ||= Nil.new)
+    def true = (@true ||= True.new)
+    def false = (@false ||= False.new)
+    def integer = (@integer ||= Integer.new)
   end
 end
