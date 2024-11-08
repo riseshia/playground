@@ -39,13 +39,30 @@ module ZatsuLsp
     end
 
     class Union < Base
+      attr_reader :element_types
+
       def initialize(element_types)
-        super
+        super()
         @element_types = element_types
       end
 
       def to_human_s
         @element_types.map(&:to_human_s).join(' | ')
+      end
+
+      class << self
+        def build(types)
+          element_types = []
+          types.each do |type|
+            if type.is_a?(Union)
+              element_types.concat(type.element_types)
+            else
+              element_types << type
+            end
+          end
+
+          new(element_types)
+        end
       end
     end
 
@@ -76,8 +93,6 @@ module ZatsuLsp
 
     module_function
 
-    def any
-      Any.new
-    end
+    def any = Any.new
   end
 end

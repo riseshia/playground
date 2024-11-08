@@ -133,8 +133,8 @@ module ZatsuLsp
           expect(a1.dependents).to eq([gt])
           expect(one.dependents).to eq([gt])
           expect(true0.dependents).to eq([if_cond])
-          expect(true0.inference).to eq("true")
-          expect(false0.inference).to eq("false")
+          expect(true0.inference.to_human_s).to eq("true")
+          expect(false0.inference.to_human_s).to eq("false")
 
           method_obj = method_registry.find("", "hello", visibility: :public, singleton: false)
           expect(method_obj.return_tvs).to eq([true0, false0])
