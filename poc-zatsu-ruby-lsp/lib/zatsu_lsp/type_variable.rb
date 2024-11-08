@@ -85,16 +85,6 @@ module ZatsuLsp
         @predicate = predicate
         predicate.add_dependent(self)
       end
-
-      def add_if_stmt(if_stmt)
-        @if_stmt = if_stmt
-        if_stmt.add_dependent(self)
-      end
-
-      def add_else_stmt(else_stmt)
-        @else_stmt = else_stmt
-        else_stmt.add_dependent(self)
-      end
     end
   end
 end
