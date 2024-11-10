@@ -69,7 +69,7 @@ module ZatsuLsp
         describe "#inference" do
           let(:tv) do
             described_class.new(path: "path", name: "a", node: nil).tap do |tv|
-              method_obj = Method.new(path: "path", node: nil)
+              method_obj = Method.new(path: "path", receiver_type: Type::Const.new("Object"), node: nil)
               tv.add_method_obj(method_obj)
             end
           end

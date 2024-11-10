@@ -2,12 +2,13 @@
 
 module ZatsuLsp
   class Method
-    attr_reader :path, :node,
+    attr_reader :path, :node, :receiver_type,
                 :arg_tvs, :return_tvs, :return_type
 
-    def initialize(path:, node:)
+    def initialize(path:, receiver_type:, node:)
       @path = path
       @node = node
+      @receiver_type = receiver_type
 
       @arg_types = {}
       @return_type = nil
@@ -18,6 +19,10 @@ module ZatsuLsp
     end
 
     def node_id = (@node_id ||= @node.node_id)
+
+    def name
+      @node.name
+    end
 
     def inference_arg_type(name)
       if @arg_types.key?(name)

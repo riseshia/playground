@@ -9,7 +9,11 @@ module ZatsuLsp
     def add(const_name, node, path, singleton:)
       id = build_id(const_name, node.name, singleton: singleton)
 
-      @registry[id] = Method.new(path: path, node: node)
+      @registry[id] = Method.new(
+        path: path,
+        node: node,
+        receiver_type: Type::Const.new(const_name),
+      )
     end
 
     def remove(const_name, method_name)
@@ -30,6 +34,16 @@ module ZatsuLsp
 
     def clear
       @registry.clear
+    end
+
+    def guess_method(name)
+      candidates = @registry.values.select { |v| v.name == name }
+
+      if candidates.size == 1
+        candidates.values.first
+      else
+        nil
+      end
     end
 
     private def build_id(const_name, method_name, singleton:)

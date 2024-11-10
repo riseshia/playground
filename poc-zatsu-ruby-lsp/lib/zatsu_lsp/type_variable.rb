@@ -106,7 +106,12 @@ module ZatsuLsp
         receiver_type = @receiver_tv.inference
 
         if receiver_type.is_a?(Type::Any)
-          Type.any
+          method_obj = MethodRegistry.guess_method(node.name)
+          if method_obj
+            method_obj.return_type
+          else
+            Type.any
+          end
         else
           method_obj = ZatsuLsp.method_registry.find(receiver_type.to_human_s, @name, visibility: :public)
           method_obj.inference_return_type

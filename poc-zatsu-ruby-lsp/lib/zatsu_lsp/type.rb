@@ -91,6 +91,18 @@ module ZatsuLsp
       end
     end
 
+    class Const < Base
+      def initialize(const_name)
+        super()
+
+        @const_name = const_name
+      end
+
+      def to_human_s
+        const_name
+      end
+    end
+
     module_function
 
     def any = (@any ||= Any.new)
