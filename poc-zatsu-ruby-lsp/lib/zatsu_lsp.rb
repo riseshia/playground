@@ -2,6 +2,8 @@
 
 require "prism"
 
+require "zatsu_lsp/loc_to_node"
+
 require "zatsu_lsp/constant"
 require "zatsu_lsp/method"
 require "zatsu_lsp/type"
