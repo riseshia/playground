@@ -1,0 +1,16 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    logger (1.6.4)
+    rbs (3.8.0)
+      logger
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  rbs (~> 3.8)
+
+BUNDLED WITH
+   2.5.22
