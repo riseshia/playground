@@ -94,35 +94,42 @@ class Table
   def build_extract_query(extract_target_table, extract_target_ids, tables_by_name)
     # target is itself
     if name == extract_target_table
-      return {
+      return [{
         from: name,
         where: [{ primary_key => extract_target_ids }],
         join: [],
         select: column_names,
-      }
+      }]
     end
 
     # it is not related to target table
     if belongs_to_relations.empty?
-      return {
+      return [{
         from: name,
         where: [],
         join: [],
         select: column_names,
-      }
+      }]
     end
 
     belongs_to_extract_target_table = belongs_to_relations.find { |relation| relation.table_name == extract_target_table }
     if belongs_to_extract_target_table
       key = "#{name}.#{belongs_to_extract_target_table.foreign_key}"
-      return { from: name, where: [{ key => extract_target_ids }], join: [], select: column_names }
+      return [{ from: name, where: [{ key => extract_target_ids }], join: [], select: column_names }]
     end
 
-    dependency = compute_dependency_to_table(extract_target_table, tables_by_name)
-    pp name
-    pp dependency
-    { from: name, where: [], join: [], select: column_names }
-    {}
+    ret = compute_dependency_to_table(extract_target_table, tables_by_name)
+
+    if ret.empty?
+      [{
+        from: name,
+        where: [],
+        join: [],
+        select: column_names,
+      }]
+    else
+      ret
+    end
   end
 
   def compute_dependency_to_table(target_table_name, tables_by_name)
@@ -135,15 +142,17 @@ class Table
       relation_table = tables_by_name[relation.table_name]
 
       if relation_table.name == target_table_name
-        [{ table_name: name, foreign_key: relation.foreign_key, join_key: relation_table.primary_key }]
+        [{ base_table_name: name, foreign_key: relation.foreign_key,
+           join_table_name: target_table_name, join_key: relation_table.primary_key }]
       else
         ret = relation_table.compute_dependency_to_table(target_table_name, tables_by_name)
-        [{ table_name: name, foreign_key: relation.foreign_key, join_key: relation_table.primary_key }] + ret
+        [{ base_table_name: name, foreign_key: relation.foreign_key,
+           join_table_name: relation_table.name, join_key: relation_table.primary_key }] + ret
       end
     end.compact
 
     matched_dependencies = results.select do |dependency|
-      dependency.last[:table_name] == target_table_name
+      dependency.last[:join_table_name] == target_table_name
     end
 
     return [] if matched_dependencies.empty?
