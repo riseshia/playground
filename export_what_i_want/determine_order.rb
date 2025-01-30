@@ -50,7 +50,16 @@ ordered_table_names.each do |table_name|
       foreign_key = sql_ast[:foreign_key]
       join_table_name = sql_ast[:join_table_name]
       join_key = sql_ast[:join_key]
-      "JOIN #{join_table_name} ON #{base_table_name}.#{foreign_key} = #{join_table_name}.#{join_key}"
+      base_join = "JOIN #{join_table_name} ON #{base_table_name}.#{foreign_key} = #{join_table_name}.#{join_key}"
+
+      if sql_ast[:where].size.positive?
+        where_clauses = sql_ast[:where].map do |where|
+          where.map { |k, v| "#{table_name}.#{k} IN (#{v.join(', ')})" }.join(" AND ")
+        end
+        base_join + " AND " + where_clauses.join(" AND ")
+      else
+        base_join
+      end
     end
 
     puts base_sql + " " + join_clauses.join(" ") + ";"

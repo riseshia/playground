@@ -114,7 +114,7 @@ class Table
 
     belongs_to_extract_target_table = belongs_to_relations.find { |relation| relation.table_name == extract_target_table }
     if belongs_to_extract_target_table
-      key = "#{name}.#{belongs_to_extract_target_table.foreign_key}"
+      key = belongs_to_extract_target_table.foreign_key
       return [{ from: name, where: [{ key => extract_target_ids }], join: [], select: column_names }]
     end
 
@@ -128,6 +128,8 @@ class Table
         select: column_names,
       }]
     else
+      last = ret.last
+      last[:where] = [{ last[:foreign_key] => extract_target_ids }]
       ret
     end
   end
