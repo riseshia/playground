@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "exwiw/version"
+
+require_relative "exwiw/runner"
 require_relative "exwiw/config"
 require_relative "exwiw/database"
 require_relative "exwiw/table"

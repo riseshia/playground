@@ -39,6 +39,8 @@ module Exwiw
           user: @database_user,
           password: @database_password,
         )
+
+        Runner.new(connection_config, @output, @config_path).run
       end
     end
 
