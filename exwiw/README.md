@@ -1,28 +1,89 @@
 # Exwiw
 
-TODO: Delete this and the text below, and describe your gem
+Export What I Want (Exwiw) is a Ruby gem that allows you to export records from a database to a dump file(to specifically, the full list of INSERT sql) on the specified conditions.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/exwiw`. To experiment with that code, run `bin/console` for an interactive prompt.
+## When to use
+
+Most of case in developing a software, There is no better choice than the same data in production.
+You might make well-crafted data, but it's very very hard to maintain.
+
+If you find the way to maintain the data for develoment env, then exwiw might be a solution for that.
+
+- Export the full database and mask data and import to another database.
+- Setup some system to replicate and mask data in real-time to another database.
+
+
+You want to export only the data you want to export.
+
+## Features
+
+- Export the full list of INSERT sql for the specified conditions.
+- Provide serveral masking options for sensitive columns.
+- Provide config generator for ActiveRecord.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
 ```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle add exwiw
 ```
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+gem install exwiw
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+### Command
+
+```bash
+# dump & masking all records from database to dump.sql based on schema.json
+# pass database password as an environment variable 'DATABASE_PASSWORD'
+exwiw --host=localhost --port=3306 --user=reader --config schema.json --output dump.sql
+```
+
+### Generator
+
+the config generator is provided as Rake task.
+
+```bash
+# generate schema.json
+bundle exec rake exwiw:schema:generate
+```
+
+### Configuration
+
+```json
+{
+    "database": {
+        "adapter": "mysql",
+        "name": "app_production",
+    },
+    "tables": [{
+        "name": "users",
+        "primary_key": "id",
+        "belongs_to": [{
+            "name": "companies",
+            "foreign_key": "company_id"
+        }],
+        "polymorphic_as": [
+            "loggable"
+        ],
+        "columns": [{
+            "name": "id",
+        }, {
+            "name": "email",
+            "mask": {
+                "type": "replaced_with",
+                "value": "user{id}@example.com"
+            }
+        }, {
+            "name": "company_id"
+        }]
+    }]
+}
+```
 
 ## Development
 
