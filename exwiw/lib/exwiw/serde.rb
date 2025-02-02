@@ -1,26 +1,100 @@
 # frozen_string_literal: true
 
-require_relative "serde/v"
-
 module Exwiw
   module Serde
-    TypeError = Class.new(StandardError)
-    RequiredAttributeError = Class.new(StandardError)
     DeclareError = Class.new(StandardError)
+    RequiredAttributeError = Class.new(StandardError)
+    SerializeError = Class.new(StandardError)
+    TypeError = Class.new(StandardError)
 
     Boolean = [TrueClass, FalseClass].freeze
 
-    # OptionalType is used to mark an attribute as optional.
-    class OptionalType
+    class TypeBase
+      def optional?
+        false
+      end
+
+      def array?
+        false
+      end
+    end
+
+    class ConcreteType < TypeBase
+      attr_reader :exact_type
+
+      def initialize(exact_type)
+        @exact_type = exact_type
+      end
+
+      def permit?(value)
+        @exact_type == value.class
+      end
+
+      def to_s
+        @exact_type.to_s
+      end
+    end
+
+    class OptionalType < TypeBase
       attr_reader :base_type
 
       def initialize(base_type)
         @base_type = base_type
       end
+
+      def optional?
+        true
+      end
+
+      def permit?(value)
+        @base_type == value.class || value.nil?
+      end
+
+      def to_s
+        "optional(#{@base_type})"
+      end
+    end
+
+    class ArrayType < TypeBase
+      attr_reader :element_type
+
+      def initialize(element_type)
+        @element_type = element_type
+      end
+
+      def array?
+        true
+      end
+
+      def permit?(value)
+        return false if !value.is_a?(Array)
+
+        value.all? { |v| v.class == @element_type }
+      end
+
+      def to_s
+        "array(#{@element_type})"
+      end
+    end
+
+    class Attribute
+      attr_accessor :class_name, :name, :attr_type, :options
+
+      def initialize(class_name:, name:, attr_type:, options: {})
+        @class_name = class_name
+        @name = name
+        @attr_type = attr_type
+        @options = options
+      end
+
+      def serialized_name
+        @name.to_s
+      end
     end
 
     def self.included(base)
       base.extend ClassMethods
+      base.include InstanceMethods
     end
 
     module ClassMethods
@@ -28,51 +102,38 @@ module Exwiw
         OptionalType.new(type)
       end
 
-      def attribute(name, type, options = {})
+      def array(type)
+        ArrayType.new(type)
+      end
+
+      def attribute(name, attr_type, options = {})
         attr_reader name
 
-        if type.is_a?(Array) && type.size != 1
-          raise Exwiw::Serde::DeclareError, "Array type must have exactly one type in the array"
-        end
-
-        _serde_attrs[name] = { type: type, options: options }
-        _serde_deserialize_keymap[name.to_s] = name
+        attr_type = ConcreteType.new(attr_type) if !attr_type.is_a?(TypeBase)
+        attr = Attribute.new(class_name: self.name, name: name, attr_type: attr_type, options: options)
+        _serde_attrs[name] = attr
+        _serde_deserialize_keymap[attr.serialized_name] = attr.name
 
         define_method("#{name}=") do |value|
-          if type.is_a?(Exwiw::Serde::OptionalType)
-            # For optional attributes: nil is allowed, otherwise verify against the base_type.
-            if value.nil? || self.class.send(:valid_type?, value, type.base_type)
-              instance_variable_set("@#{name}", value)
-            else
-              raise Exwiw::Serde::TypeError, "Expected #{self.class}##{name} to be a #{type.base_type} (or nil), but got #{value.class}"
-            end
-          else
-            if value.nil?
-              raise Exwiw::Serde::TypeError, "Missing required attribute '#{name}' for #{self.class}"
-            elsif self.class.send(:valid_type?, value, type)
-              instance_variable_set("@#{name}", value)
-            else
-              raise Exwiw::Serde::TypeError, "Expected #{self.class}##{name} to be a #{type}, but got #{value.class}"
-            end
-          end
+          Functions.validate_type!(attr, value)
+          instance_variable_set("@#{name}", value)
         end
       end
 
-      def valid_type?(value, type)
-        if type == Boolean
-          # Boolean type: allow only true or false.
-          return value.is_a?(TrueClass) || value.is_a?(FalseClass)
-        elsif type.is_a?(Array)
-          if type.size == 1
-            # Single-element array type: value must be an Array and all elements must be instances of type.first.
-            return false unless value.is_a?(::Array)
-            return value.all? { |v| v.is_a?(type.first) }
-          else
-            # Multi-element array type: for union types like Boolean, check if value is an instance of any type.
-            return type.any? { |t| value.is_a?(t) }
+      def from(obj)
+        Functions.from__proxy(self, obj)
+      end
+
+      def from_hash(hash)
+        new.tap do |instance|
+          _serde_attrs.each_value do |attr|
+            key = attr.serialized_name
+            serialized_value = hash[key]
+
+            value = Functions.from__proxy(attr.attr_type, serialized_value)
+
+            instance.__send__("#{attr.name}=", value)
           end
-        else
-          value.is_a?(type)
         end
       end
 
@@ -83,57 +144,96 @@ module Exwiw
       private def _serde_deserialize_keymap
         @_serde_deserialize_keymap ||= {}
       end
+    end
 
-      def from_hash(from_obj)
-        new.tap do |obj|
-          _serde_deserialize_keymap.each do |from_key, to_key|
-            from_value = from_obj[from_key]
-            to_type = _serde_attrs[to_key][:type]
+    module InstanceMethods
+      def to_hash
+        self.class.__send__(:_serde_attrs).each_with_object({}) do |(name, attr), hash|
+          key = attr.serialized_name
+          value = __send__(name)
 
-            if from_value.class == to_type
-              obj.__send__("#{to_key}=", from_value.dup)
-              next
-            end
-
-            if to_type.is_a?(Array)
-              el_type = to_type.first
-              method_name = build_from_method_name(from_value)
+          hash[key] =
+            if value.respond_to?(:to_hash)
+              value.to_hash
+            elsif value.is_a?(Array)
+              value.map { |v| Functions.skip_to_hash?(v) ? v : v.to_hash }
+            elsif Functions.skip_to_hash?(value)
+              value
             else
-              method_name = build_from_method_name(from_value)
-              if to_type.respond_to?(method_name)
-                value = to_type.__send__(method_name, from_value)
-                obj.__send__("#{to_key}=", value)
-              else
-                raise "#{to_type} does not respond to #{method_name}"
-              end
+              raise SerializeError, "Cannot serialize #{attr.class_name}##{attr.name} to Hash."
             end
+        end
+      end
+    end
+
+    module Functions
+      module_function
+
+      # To avoid monkey patching stdlib classes, we use this proxy.
+      def from__proxy(from_type, to_value)
+        case from_type
+        when OptionalType
+          if to_value.nil?
+            nil
+          else
+            from_type = from_type.base_type
+            from__native_type__proxy(from_type, to_value)
           end
-        end
-      end
-
-      private def deserialize(from_obj, to_type)
-      end
-
-      def to(target_class = Hash)
-        method_name = build_to_method_name(obj)
-
-        if obj.class == self.class
-          obj.clone
-        elsif respond_to?(method_name)
-          __send__(method_name, obj)
+        when ArrayType
+          if to_value.is_a?(Array)
+            elem_type = from_type.element_type
+            to_value.map { |v| from__native_type__proxy(elem_type, v) }
+          else
+            from__native_type__proxy(from_type, to_value)
+          end
+        when ConcreteType
+          from_type = from_type.exact_type if from_type.is_a?(ConcreteType)
+          from__native_type__proxy(from_type, to_value)
         else
-          raise "Naiyo"
+          from__native_type__proxy(from_type, to_value)
         end
       end
 
-      def build_from_method_name(obj)
-        suffix = obj.class.name.downcase.gsub("::", "__")
-        "from_#{suffix}"
+      def from__native_type__proxy(from_type, to_value)
+        from_method = Functions.from_interface_for(to_value)
+
+        if from_type.respond_to?(from_method)
+          from_type.__send__(from_method, to_value)
+        else
+          # Do nothing, delegate error to validate_type! for better error message if mismached.
+          to_value
+        end
       end
 
-      def build_to_method_name(obj)
-        suffix = obj.class.name.downcase.gsub("::", "__")
-        "to_#{suffix}"
+      def from_interface_for(obj)
+        "from_#{const_name_to_snake_case(obj.class.name)}"
+      end
+
+      def const_name_to_snake_case(const_name)
+        const_name.gsub(/A-Z/, "_\\1").downcase.gsub("::", "__")
+      end
+
+      def validate_type!(attr, value)
+        valid = attr.attr_type.permit?(value)
+        return if valid
+
+        actual_type =
+          if attr.attr_type.array?
+            "array(" + value.map(&:class).uniq.join(", ") + ")"
+          else
+            value.class
+          end
+
+        raise TypeError, "Type mismatch for #{attr.class_name}##{attr.name}. Expected #{attr.attr_type}, got #{actual_type}."
+      end
+
+      def skip_to_hash?(value)
+        case value
+        when NilClass, String, Numeric, TrueClass, FalseClass
+          true
+        else
+          false
+        end
       end
     end
   end
