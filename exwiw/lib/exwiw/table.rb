@@ -2,33 +2,13 @@
 
 module Exwiw
   class Table
-    attr_accessor :name, :primary_key, :belongs_to_relations, :polymorphic_as, :columns
+    include Serdes
 
-    def self.deserialize(json)
-      new.tap do |table|
-        table.name = Serde::V.alidate!(json["name"], :string)
-        table.primary_key = Serde::V.alidate!(json["primary_key"], :string)
-
-        Serde::V.alidate!(json["belongs_to_relations"], :array)
-        table.belongs_to_relations = json["belongs_to_relations"].map { |relation| BelongsToRelation.deserialize(relation) }
-
-        Serde::V.alidate!(json["polymorphic_as"], :array)
-        table.polymorphic_as = json["polymorphic_as"].map { |val| Serde::V.alidate!(val, :string) }
-
-        Serde::V.alidate!(json["columns"], :array)
-        table.columns = json["columns"].map { |column| TableColumn.deserialize(column) }
-      end
-    end
-
-    def serialize
-      {
-        name: name,
-        primary_key: primary_key,
-        belongs_to_relations: belongs_to_relations.map(&:serialize),
-        polymorphic_as: polymorphic_as,
-        columns: columns.map(&:serialize),
-      }
-    end
+    attribute :name, String
+    attribute :primary_key, String
+    attribute :belongs_to_relations, array(BelongsToRelation)
+    attribute :polymorphic_as, array(String)
+    attribute :columns, array(TableColumn)
 
     def column_names
       columns.map(&:name)

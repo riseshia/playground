@@ -15,9 +15,7 @@ module Exwiw
 
     private def load_tables
       json = JSON.parse(File.read(@config_path))
-      Serde::V.alidate!(json, :array)
-
-      json.map { |table| Table.deserialize(table) }
+      Config.from(json)
     end
   end
 end

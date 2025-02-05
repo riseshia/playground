@@ -2,20 +2,9 @@
 
 module Exwiw
   class Config
-    attr_accessor :database, :tables
+    include Serdes
 
-    def self.deserialize(json)
-      new.tap do |config|
-        config.database = Database.deserialize(json["database"])
-        config.tables = json["tables"].map { |table| Table.deserialize(table) }
-      end
-    end
-
-    def serialize
-      {
-        database: database.serialize,
-        tables: tables.map(&:serialize),
-      }
-    end
+    attribute :database, Database
+    attribute :tables, array(Table)
   end
 end

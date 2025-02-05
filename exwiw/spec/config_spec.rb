@@ -13,7 +13,7 @@ RSpec.describe Exwiw::Config do
     end
 
     it "par useful" do
-      expect(Exwiw::Config.deserialize(config_obj)).to be_a(Exwiw::Config)
+      expect(Exwiw::Config.from(config_obj)).to be_a(Exwiw::Config)
     end
   end
 end
