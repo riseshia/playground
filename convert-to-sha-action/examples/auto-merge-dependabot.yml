@@ -16,6 +16,8 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
+     - uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Enable auto-merge for Dependabot PRs
         if: contains(steps.metadata.outputs.dependency-names, 'cargo')
         run: gh pr merge --auto --merge "$PR_URL"

@@ -20,19 +20,93 @@ class ActionConverter
       # 既にSHA参照の場合はスキップ（40文字の16進数）
       next if ref.match?(/^[0-9a-f]{40}$/)
       
-      # タグからSHAを取得
-      sha = get_sha_from_tag(repo, ref)
+      # タグからSHAとフルバージョンを取得
+      sha, full_version = get_sha_and_full_version(repo, ref)
       next unless sha
 
       # 置換処理
       original = "uses: #{repo}@#{ref}"
-      replacement = "uses: #{repo}@#{sha} # #{ref}"
+      # フルバージョンがあればそれを使用、なければ元のタグをそのまま使用
+      version_comment = full_version || ref
+      replacement = "uses: #{repo}@#{sha} # #{version_comment}"
       modified_content = modified_content.gsub(original, replacement)
     end
 
     # ファイルに書き戻す
     File.write(@workflow_path, modified_content)
     modified_content
+  end
+
+  # タグからSHAとフルバージョンを取得
+  def get_sha_and_full_version(repo, tag)
+    owner, repo_name = repo.split('/')
+    return [nil, nil] unless owner && repo_name
+
+    # タグのSHAを取得
+    sha = get_sha_from_tag(repo, tag)
+    return [nil, nil] unless sha
+
+    # SHA から対応する詳細なバージョンタグを取得
+    if tag.match?(/^v\d+$/)
+      full_version = find_detailed_version_from_sha(owner, repo_name, sha, tag)
+      return [sha, full_version || ensure_semantic_version(tag)]
+    end
+
+    # 既に詳細なバージョンタグが指定されている場合も完全なセマンティックバージョン形式にする
+    [sha, ensure_semantic_version(tag)]
+  end
+
+  # バージョン番号を完全なセマンティックバージョン形式（メジャー.マイナー.パッチ）に変換
+  def ensure_semantic_version(version)
+    return version unless version.match?(/^v\d+/)
+
+    parts = version.sub(/^v/, '').split('.')
+    while parts.size < 3
+      parts << '0'
+    end
+    "v#{parts.join('.')}"
+  end
+
+  # コミットSHAから対応する詳細なバージョンタグを取得
+  def find_detailed_version_from_sha(owner, repo_name, sha, major_version)
+    # コミットSHAに紐づくタグを取得
+    stdout, stderr, status = Open3.capture3("gh", "api", "repos/#{owner}/#{repo_name}/tags")
+    return nil unless status.success?
+
+    begin
+      tags = JSON.parse(stdout)
+      
+      # コミットSHAに紐づくタグをフィルタリング
+      matching_tags = tags.select { |tag| tag['commit']['sha'] == sha }
+      return nil if matching_tags.empty?
+      
+      # メジャーバージョンに一致するタグのみをフィルタリング
+      matching_version_tags = matching_tags.map { |tag| tag['name'] }.select do |name|
+        (name.start_with?("#{major_version}.") && name.split('.').size == 3) \
+        || name == major_version
+      end
+      
+      return nil if matching_version_tags.empty?
+      
+      # バージョン番号を解析してソート用の配列に変換
+      version_objects = matching_version_tags.map do |ver|
+        parts = ver.sub(/^v/, '').split('.').map(&:to_i)
+        # 配列の長さを揃える
+        while parts.size < 3
+          parts << 0
+        end
+        { version: ver, parts: parts }
+      end
+      
+      # セマンティックバージョニングに基づいてソートし、最新のバージョンを取得
+      latest_version = version_objects.sort_by { |obj| obj[:parts] }.last[:version]
+      
+      # 完全なセマンティックバージョン形式で返す
+      return ensure_semantic_version(latest_version)
+    rescue JSON::ParserError, KeyError => e
+      puts "Error parsing tags response: #{e.message}"
+      return nil
+    end
   end
 
   # テスト用にパブリックメソッドへ変更
