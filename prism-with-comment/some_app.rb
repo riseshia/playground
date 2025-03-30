@@ -1,3 +1,6 @@
+# Description: This script extracts the comments from a Ruby file using Prism
+# Usage: ruby extract_comment.rb
+
 class SomeApp
   def initialize(
     name #:: String
