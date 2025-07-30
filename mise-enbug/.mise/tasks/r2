@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE raw=true
+
+read -r -p "Enter input: " INPUT
+echo "r2 Got: $INPUT"

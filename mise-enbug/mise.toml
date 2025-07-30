@@ -1,0 +1,34 @@
+[settings]
+# jobs = 1
+
+[tasks.setup1]
+run = "echo Do setup1"
+
+[tasks.setup2]
+run = "echo Do setup2"
+
+[tasks.no_enbug1]
+run = "cat"
+
+[tasks.no_enbug2]
+depends = ["setup1"]
+run = "cat"
+
+[tasks.enbug]
+depends = ["setup1", "setup2"]
+run = "cat" # do not wait stdin
+
+[tasks.hoge]
+depends = ["setup1", "setup2"]
+run = "echo hoge" # do not wait stdin
+
+[tasks.with_raw]
+raw = true
+depends = ["setup1", "setup2"]
+run = "cat" # do not wait stdin
+
+[tasks.all]
+depends = ["hoge", "with_raw"]
+
+[tasks.reads]
+depends = ["r1", "r2"]
