@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-#MISE raw=true
 
-read -r -p "Enter input: " INPUT
-echo "r2 Got: $INPUT"
+while true; do
+  echo "$(date +%Y-%m-%dT%H:%M:%S)"
+  sleep 1
+done

@@ -1,5 +1,5 @@
 [settings]
-# jobs = 1
+# task_output = "interleave"
 
 [tasks.setup1]
 run = "echo Do setup1"
@@ -32,3 +32,14 @@ depends = ["hoge", "with_raw"]
 
 [tasks.reads]
 depends = ["r1", "r2"]
+
+[tasks.dev]
+depends = ["dev:*"]
+
+[tasks."dev:server"]
+depends = ["setup1", "setup2"]
+run = ".mise/tasks/r1"
+
+[tasks."dev:frontend"]
+depends = ["setup1", "setup2"]
+run = ".mise/tasks/r2"

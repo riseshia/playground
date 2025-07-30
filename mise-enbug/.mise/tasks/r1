@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #MISE raw=true
 
+echo "wai"
 read -r -p "Enter input: " INPUT
 echo "r1 Got: $INPUT"
