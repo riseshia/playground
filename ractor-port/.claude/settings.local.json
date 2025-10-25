@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:docs.ruby-lang.org)",
+      "Bash(mkdir:*)",
+      "Bash(ruby test/test_ractor_port.rb:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
