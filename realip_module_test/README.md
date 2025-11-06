@@ -15,8 +15,8 @@ realip_module_test/
 │   └── nginx.conf          # Nginx設定ファイル（realip_module設定を含む）
 ├── backend/
 │   ├── Dockerfile          # バックエンドアプリケーション用Dockerfile
-│   ├── app.py              # Flask バックエンドアプリケーション
-│   └── requirements.txt    # Python依存関係
+│   ├── app.rb              # Sinatra バックエンドアプリケーション
+│   └── Gemfile             # Ruby依存関係
 ├── test.sh                 # テストスクリプト
 └── README.md               # このファイル
 ```

@@ -1,19 +1,19 @@
-FROM python:3.11-slim
+FROM ruby:3.3-slim
 
 WORKDIR /app
 
 # 依存関係をインストール
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY Gemfile .
+RUN bundle install
 
 # アプリケーションをコピー
-COPY app.py .
+COPY app.rb .
 
 # 実行権限を付与
-RUN chmod +x app.py
+RUN chmod +x app.rb
 
 # ポート8080を公開
 EXPOSE 8080
 
 # アプリケーションを起動
-CMD ["python", "app.py"]
+CMD ["ruby", "app.rb"]
