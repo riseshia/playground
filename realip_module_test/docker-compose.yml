@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: realip_nginx
+    ports:
+      - "8888:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - realip_network
+
+  backend:
+    build: ./backend
+    container_name: realip_backend
+    expose:
+      - "8080"
+    networks:
+      - realip_network
+
+networks:
+  realip_network:
+    driver: bridge
