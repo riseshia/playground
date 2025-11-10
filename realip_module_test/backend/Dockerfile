@@ -1,4 +1,4 @@
-FROM ruby:3.3-slim
+FROM ruby:3.4
 
 WORKDIR /app
 
@@ -16,4 +16,4 @@ RUN chmod +x app.rb
 EXPOSE 8080
 
 # アプリケーションを起動
-CMD ["ruby", "app.rb"]
+CMD ["bundle", "exec", "ruby", "app.rb"]
