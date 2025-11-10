@@ -8,6 +8,7 @@ RUN bundle install
 
 # アプリケーションをコピー
 COPY app.rb .
+COPY config.ru .
 
 # 実行権限を付与
 RUN chmod +x app.rb
@@ -16,4 +17,4 @@ RUN chmod +x app.rb
 EXPOSE 8080
 
 # アプリケーションを起動
-CMD ["bundle", "exec", "ruby", "app.rb"]
+CMD ["bundle", "exec", "rackup", "--host", "0.0.0.0", "--port", "8080"]
