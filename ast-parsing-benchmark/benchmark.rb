@@ -1,4 +1,4 @@
-require 'benchmark/ips'
+require 'benchmark'
 require_relative 'thread_parallel'
 require_relative 'ractor_parallel'
 
@@ -17,16 +17,33 @@ puts "Ractor count: #{RACTOR_COUNT}"
 puts "=" * 80
 puts
 
-Benchmark.ips do |x|
-  x.config(time: 10, warmup: 2)
+results = {}
 
-  x.report("Thread-based (#{THREAD_COUNT} threads)") do
-    ThreadParallel.run(SAMPLE_FILE, ITERATIONS, THREAD_COUNT)
-  end
-
-  x.report("Ractor-based (#{RACTOR_COUNT} ractors)") do
-    RactorParallel.run(SAMPLE_FILE, ITERATIONS, RACTOR_COUNT)
-  end
-
-  x.compare!
+puts "\n1. Testing Thread-based parallel processing..."
+thread_time = Benchmark.realtime do
+  results[:thread] = ThreadParallel.run(SAMPLE_FILE, ITERATIONS, THREAD_COUNT)
 end
+puts "   Completed in #{thread_time.round(3)} seconds"
+puts "   Results count: #{results[:thread].size}"
+
+puts "\n2. Testing Ractor-based parallel processing..."
+ractor_time = Benchmark.realtime do
+  results[:ractor] = RactorParallel.run(SAMPLE_FILE, ITERATIONS, RACTOR_COUNT)
+end
+puts "   Completed in #{ractor_time.round(3)} seconds"
+puts "   Results count: #{results[:ractor].size}"
+
+puts "\n" + "=" * 80
+puts "COMPARISON"
+puts "=" * 80
+puts "Thread-based: #{thread_time.round(3)}s"
+puts "Ractor-based: #{ractor_time.round(3)}s"
+
+if thread_time < ractor_time
+  speedup = (ractor_time / thread_time).round(2)
+  puts "\n✓ Thread-based is #{speedup}x faster"
+else
+  speedup = (thread_time / ractor_time).round(2)
+  puts "\n✓ Ractor-based is #{speedup}x faster"
+end
+puts "=" * 80
