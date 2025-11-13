@@ -2,9 +2,6 @@ require 'prism'
 
 class RactorParallel
   def self.run(file_path, iterations, ractor_count = 8)
-    # Read file content once and pass it to ractors
-    source = File.read(file_path)
-
     results = []
     ractors = []
 
@@ -15,10 +12,12 @@ class RactorParallel
       iterations_for_this_ractor = iterations_per_ractor
       iterations_for_this_ractor += 1 if i < remainder
 
-      ractors << Ractor.new(source, iterations_for_this_ractor) do |src, iter|
+      ractors << Ractor.new(file_path, iterations_for_this_ractor) do |path, iter|
         ractor_results = []
 
         iter.times do
+          # Read file on each iteration
+          src = File.read(path)
           result = Prism.parse(src)
           local_vars = []
 
