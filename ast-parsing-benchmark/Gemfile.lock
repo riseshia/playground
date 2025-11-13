@@ -1,0 +1,16 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    benchmark-ips (2.14.0)
+    prism (1.6.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  benchmark-ips
+  prism
+
+BUNDLED WITH
+   2.7.2
