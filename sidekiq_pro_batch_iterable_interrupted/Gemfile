@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "sidekiq", "~> 7.3.0"
+
+gem "redis", ">= 5"
+
+group :development do
+  gem "logger"
+end
+
+# Sidekiq Pro is required because this MRE depends on Sidekiq::Batch
+source "https://gems.contribsys.com/" do
+  gem "sidekiq-pro"
+end
