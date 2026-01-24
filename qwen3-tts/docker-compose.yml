@@ -1,0 +1,23 @@
+services:
+  qwen-tts:
+    build: .
+    image: qwen3-tts-demo
+    container_name: qwen3-tts
+    ports:
+      - "7860:7860"
+    volumes:
+      # 모델 캐시 (재시작 시 재다운로드 방지)
+      - ./models:/app/models
+      # 생성된 오디오 파일 저장
+      - ./outputs:/app/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - HF_HOME=/app/models
+    restart: unless-stopped
