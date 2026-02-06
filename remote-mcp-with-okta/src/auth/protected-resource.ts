@@ -1,22 +1,16 @@
 import { Request, Response } from 'express';
 import { config } from '../config.js';
 
-interface ProtectedResourceMetadata {
-  resource: string;
-  authorization_servers: string[];
-  scopes_supported: string[];
-  bearer_methods_supported: string[];
-}
-
+// リファレンス実装に合わせ、authorization_servers に AS メタデータプロキシの URL を設定
 export function protectedResourceHandler(_req: Request, res: Response): void {
-  const metadata: ProtectedResourceMetadata = {
+  const metadata = {
     resource: config.server.baseUrl,
-    authorization_servers: [config.okta.issuer],
-    scopes_supported: ['mcp:read'],
+    authorization_servers: [
+      config.server.baseUrl,
+    ],
     bearer_methods_supported: ['header'],
+    scopes_supported: ['openid', 'email'],
   };
 
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'public, max-age=3600');
   res.json(metadata);
 }

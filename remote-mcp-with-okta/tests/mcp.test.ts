@@ -14,9 +14,9 @@ describe('MCP Endpoint', () => {
 
       expect(response.status).toBe(401);
       expect(response.headers['www-authenticate']).toBe(
-        'Bearer resource="http://localhost:3000"'
+        'Bearer resource_metadata="http://localhost:3000/.well-known/oauth-protected-resource"'
       );
-      expect(response.body.error.code).toBe(-32001);
+      expect(response.body.error).toBe('unauthorized');
     });
 
     it('should return 401 with invalid token', async () => {
@@ -26,9 +26,10 @@ describe('MCP Endpoint', () => {
         .send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
 
       expect(response.status).toBe(401);
-      expect(response.headers['www-authenticate']).toBe(
-        'Bearer resource="http://localhost:3000", error="invalid_token", error_description="The access token is invalid"'
+      expect(response.headers['www-authenticate']).toContain(
+        'Bearer resource_metadata="http://localhost:3000/.well-known/oauth-protected-resource"'
       );
+      expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
     });
 
     it('should return 401 with expired token', async () => {
@@ -38,9 +39,10 @@ describe('MCP Endpoint', () => {
         .send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
 
       expect(response.status).toBe(401);
-      expect(response.headers['www-authenticate']).toBe(
-        'Bearer resource="http://localhost:3000", error="invalid_token", error_description="The access token has expired"'
+      expect(response.headers['www-authenticate']).toContain(
+        'Bearer resource_metadata="http://localhost:3000/.well-known/oauth-protected-resource"'
       );
+      expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
     });
   });
 

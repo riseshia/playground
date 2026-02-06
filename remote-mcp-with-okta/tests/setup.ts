@@ -1,30 +1,68 @@
 import { vi } from 'vitest';
 
-// 환경 변수 설정 (테스트용)
-process.env.OKTA_ISSUER = 'https://test.okta.com/oauth2/default';
-process.env.OKTA_AUDIENCE = 'http://localhost:3000';
+// テスト用環境変数
+process.env.COGNITO_USER_POOL_ID = 'ap-northeast-1_TestPool123';
+process.env.COGNITO_REGION = 'ap-northeast-1';
+process.env.COGNITO_CLIENT_ID = 'test-client-id';
 process.env.SERVER_BASE_URL = 'http://localhost:3000';
 
-// Okta JWT Verifier mock
-vi.mock('@okta/jwt-verifier', () => {
-  const MockOktaJwtVerifier = class {
-    verifyAccessToken(token: string, audience: string) {
-      if (token === 'valid-token') {
-        return Promise.resolve({
-          claims: {
+// jsonwebtoken mock
+vi.mock('jsonwebtoken', () => {
+  return {
+    default: {
+      decode: (token: string) => {
+        if (token === 'valid-token' || token === 'expired-token' || token === 'invalid-token') {
+          return {
+            header: { kid: 'test-kid', alg: 'RS256' },
+            payload: { sub: 'user@example.com' },
+          };
+        }
+        return null;
+      },
+      verify: (token: string) => {
+        if (token === 'valid-token') {
+          return {
             sub: 'user@example.com',
-            aud: audience,
-            iss: process.env.OKTA_ISSUER,
-            scp: ['mcp:read'],
-          },
-        });
-      }
-      if (token === 'expired-token') {
-        return Promise.reject(new Error('Jwt is expired'));
-      }
-      return Promise.reject(new Error('Invalid token'));
-    }
+            iss: 'https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_TestPool123',
+            token_use: 'access',
+            scope: 'openid email',
+          };
+        }
+        if (token === 'expired-token') {
+          throw new Error('jwt expired');
+        }
+        throw new Error('invalid signature');
+      },
+    },
   };
-
-  return { default: MockOktaJwtVerifier };
 });
+
+// jwk-to-pem mock
+vi.mock('jwk-to-pem', () => {
+  return {
+    default: () => 'mock-pem-key',
+  };
+});
+
+// global fetch mock for JWKS and metadata
+const originalFetch = global.fetch;
+global.fetch = vi.fn(async (url: string | URL | globalThis.Request) => {
+  const urlStr = url.toString();
+
+  if (urlStr.includes('openid-configuration')) {
+    return new Response(JSON.stringify({
+      issuer: 'https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_TestPool123',
+      jwks_uri: 'https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_TestPool123/.well-known/jwks.json',
+      authorization_endpoint: 'https://test.auth.ap-northeast-1.amazoncognito.com/oauth2/authorize',
+      token_endpoint: 'https://test.auth.ap-northeast-1.amazoncognito.com/oauth2/token',
+    }));
+  }
+
+  if (urlStr.includes('jwks.json')) {
+    return new Response(JSON.stringify({
+      keys: [{ kid: 'test-kid', kty: 'RSA', n: 'test', e: 'AQAB' }],
+    }));
+  }
+
+  return originalFetch(url);
+}) as typeof fetch;

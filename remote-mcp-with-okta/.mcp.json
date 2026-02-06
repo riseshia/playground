@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "my-cognito-mcp": {
+      "type": "http",
+      "url": "http://localhost:3000/mcp",
+      "oauth": {
+        "clientId": "1k710d0gjler5ntphi5qvrlqik",
+        "callbackPort": 9999
+      }
+    }
+  }
+}

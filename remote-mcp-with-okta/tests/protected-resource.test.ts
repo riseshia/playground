@@ -11,12 +11,11 @@ describe('GET /.well-known/oauth-protected-resource', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toMatch(/application\/json/);
-    expect(response.headers['cache-control']).toBe('public, max-age=3600');
 
     expect(response.body).toEqual({
       resource: 'http://localhost:3000',
-      authorization_servers: ['https://test.okta.com/oauth2/default'],
-      scopes_supported: ['mcp:read'],
+      authorization_servers: ['http://localhost:3000'],
+      scopes_supported: ['openid', 'email'],
       bearer_methods_supported: ['header'],
     });
   });

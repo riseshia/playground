@@ -1,7 +1,7 @@
 {
-  "name": "remote-mcp-with-okta",
+  "name": "remote-mcp-with-cognito",
   "version": "1.0.0",
-  "description": "Remote MCP server with Okta OAuth authentication",
+  "description": "Remote MCP server with AWS Cognito OAuth authentication",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -13,14 +13,17 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@okta/jwt-verifier": "^4.0.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "jwk-to-pem": "^2.0.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/jwk-to-pem": "^2.0.3",
     "@types/node": "^24.10.9",
     "@types/supertest": "^6.0.3",
     "supertest": "^7.2.2",

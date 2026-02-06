@@ -1,10 +1,17 @@
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
 
-  // Okta OAuth settings
-  okta: {
-    issuer: process.env.OKTA_ISSUER || '',
-    audience: process.env.OKTA_AUDIENCE || '',
+  // AWS Cognito OAuth settings
+  cognito: {
+    userPoolId: process.env.COGNITO_USER_POOL_ID || '',
+    region: process.env.COGNITO_REGION || '',
+    clientId: process.env.COGNITO_CLIENT_ID || '',
+    get issuer(): string {
+      return `https://cognito-idp.${this.region}.amazonaws.com/${this.userPoolId}`;
+    },
+    get openIdConfigUrl(): string {
+      return `${this.issuer}/.well-known/openid-configuration`;
+    },
   },
 
   // Server settings
@@ -14,10 +21,13 @@ export const config = {
 };
 
 export function validateConfig(): void {
-  if (!config.okta.issuer) {
-    throw new Error('OKTA_ISSUER environment variable is required');
+  if (!config.cognito.userPoolId) {
+    throw new Error('COGNITO_USER_POOL_ID environment variable is required');
   }
-  if (!config.okta.audience) {
-    throw new Error('OKTA_AUDIENCE environment variable is required');
+  if (!config.cognito.region) {
+    throw new Error('COGNITO_REGION environment variable is required');
+  }
+  if (!config.cognito.clientId) {
+    throw new Error('COGNITO_CLIENT_ID environment variable is required');
   }
 }
