@@ -1,0 +1,94 @@
+# frozen_string_literal: true
+# gem install benchmark-ips && ruby bench.rb
+
+require "benchmark/ips"
+require "objspace"
+require_relative "ruby_struct"
+
+puts "Ruby #{RUBY_VERSION} (#{RUBY_PLATFORM})"
+
+# 型定義
+LocData       = Data.define(:offset)
+LocStructKw   = Struct.new(:offset, keyword_init: true)
+LocStructPos  = Struct.new(:offset)
+LocRubyStKw   = RubyStruct.new(:offset, keyword_init: true)
+LocRubyStPos  = RubyStruct.new(:offset)
+
+LWData         = Data.define(:name, :value, :called_methods, :loc)
+LWStructKw     = Struct.new(:name, :value, :called_methods, :loc, keyword_init: true)
+LWStructPos    = Struct.new(:name, :value, :called_methods, :loc)
+LWRubyStKw     = RubyStruct.new(:name, :value, :called_methods, :loc, keyword_init: true)
+LWRubyStPos    = RubyStruct.new(:name, :value, :called_methods, :loc)
+
+CNData         = Data.define(:method, :receiver, :args, :block_params,
+                             :block_body, :has_block, :called_methods, :loc)
+CNStructKw     = Struct.new(:method, :receiver, :args, :block_params,
+                            :block_body, :has_block, :called_methods, :loc,
+                            keyword_init: true)
+CNStructPos    = Struct.new(:method, :receiver, :args, :block_params,
+                            :block_body, :has_block, :called_methods, :loc)
+CNRubyStKw     = RubyStruct.new(:method, :receiver, :args, :block_params,
+                                :block_body, :has_block, :called_methods, :loc,
+                                keyword_init: true)
+CNRubyStPos    = RubyStruct.new(:method, :receiver, :args, :block_params,
+                                :block_body, :has_block, :called_methods, :loc)
+
+cm = []
+loc = LocData.new(offset: 0)
+
+# 1. 単一オブジェクト生成
+[
+  ["Loc (1 field)", {
+    "Data.define"    => -> { LocData.new(offset: 42) },
+    "Struct(kw)"     => -> { LocStructKw.new(offset: 42) },
+    "Struct(pos)"    => -> { LocStructPos.new(42) },
+    "RubyStruct(kw)" => -> { LocRubyStKw.new(offset: 42) },
+    "RubyStruct(pos)" => -> { LocRubyStPos.new(42) },
+  }],
+  ["CallNode (8 fields)", {
+    "Data.define"    => -> { CNData.new(method: :foo, receiver: nil, args: cm,
+                             block_params: cm, block_body: nil, has_block: false,
+                             called_methods: cm, loc: loc) },
+    "Struct(kw)"     => -> { CNStructKw.new(method: :foo, receiver: nil, args: cm,
+                             block_params: cm, block_body: nil, has_block: false,
+                             called_methods: cm, loc: loc) },
+    "Struct(pos)"    => -> { CNStructPos.new(:foo, nil, cm, cm, nil, false, cm, loc) },
+    "RubyStruct(kw)" => -> { CNRubyStKw.new(method: :foo, receiver: nil, args: cm,
+                              block_params: cm, block_body: nil, has_block: false,
+                              called_methods: cm, loc: loc) },
+    "RubyStruct(pos)" => -> { CNRubyStPos.new(:foo, nil, cm, cm, nil, false, cm, loc) },
+  }],
+].each do |label, variants|
+  puts "\n### #{label}"
+  Benchmark.ips do |x|
+    x.config(warmup: 2, time: 5)
+    variants.each { |name, block| x.report(name, &block) }
+    x.compare!
+  end
+end
+
+# 2. バルク生成 (200万オブジェク)
+puts "\n### Bulk: Loc 2M objects"
+n = 2_000_000
+{ "Data.define"    => -> { Array.new(n) { |i| LocData.new(offset: i) } },
+  "Struct(pos)"    => -> { Array.new(n) { |i| LocStructPos.new(i) } },
+  "RubyStruct(pos)" => -> { Array.new(n) { |i| LocRubyStPos.new(i) } },
+  "Integer"        => -> { Array.new(n) { |i| i } },
+}.each do |label, block|
+  3.times { GC.start(full_mark: true, immediate_sweep: true) }
+  t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  block.call
+  t = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
+  printf "%-15s  %.3fs\n", label, t
+end
+
+# 3. メモリ
+puts "\n### Memory"
+[["Loc",  LocData.new(offset: 0), LocStructPos.new(0), LocRubyStPos.new(0)],
+ ["LW",   LWData.new(name: :x, value: nil, called_methods: [], loc: loc),
+           LWStructPos.new(:x, nil, [], 0),
+           LWRubyStPos.new(:x, nil, [], 0)]
+].each do |label, d, s, rs|
+  printf "%-5s  Data: %dB  Struct: %dB  RubyStruct: %dB\n",
+    label, ObjectSpace.memsize_of(d), ObjectSpace.memsize_of(s), ObjectSpace.memsize_of(rs)
+end
