@@ -14,11 +14,15 @@ LocStructPos  = Struct.new(:offset)
 LocRubyStKw   = RubyStruct.new(:offset, keyword_init: true)
 LocRubyStPos  = RubyStruct.new(:offset)
 
-LWData         = Data.define(:name, :value, :called_methods, :loc)
-LWStructKw     = Struct.new(:name, :value, :called_methods, :loc, keyword_init: true)
-LWStructPos    = Struct.new(:name, :value, :called_methods, :loc)
-LWRubyStKw     = RubyStruct.new(:name, :value, :called_methods, :loc, keyword_init: true)
-LWRubyStPos    = RubyStruct.new(:name, :value, :called_methods, :loc)
+class LocClassPos
+  attr_reader :offset
+  def initialize(offset) = @offset = offset
+end
+
+class LocClassKw
+  attr_reader :offset
+  def initialize(offset:) = @offset = offset
+end
 
 CNData         = Data.define(:method, :receiver, :args, :block_params,
                              :block_body, :has_block, :called_methods, :loc)
@@ -33,6 +37,24 @@ CNRubyStKw     = RubyStruct.new(:method, :receiver, :args, :block_params,
 CNRubyStPos    = RubyStruct.new(:method, :receiver, :args, :block_params,
                                 :block_body, :has_block, :called_methods, :loc)
 
+class CNClassPos
+  attr_reader :method, :receiver, :args, :block_params,
+              :block_body, :has_block, :called_methods, :loc
+  def initialize(method, receiver, args, block_params, block_body, has_block, called_methods, loc)
+    @method = method; @receiver = receiver; @args = args; @block_params = block_params
+    @block_body = block_body; @has_block = has_block; @called_methods = called_methods; @loc = loc
+  end
+end
+
+class CNClassKw
+  attr_reader :method, :receiver, :args, :block_params,
+              :block_body, :has_block, :called_methods, :loc
+  def initialize(method:, receiver:, args:, block_params:, block_body:, has_block:, called_methods:, loc:)
+    @method = method; @receiver = receiver; @args = args; @block_params = block_params
+    @block_body = block_body; @has_block = has_block; @called_methods = called_methods; @loc = loc
+  end
+end
+
 cm = []
 loc = LocData.new(offset: 0)
 
@@ -44,6 +66,8 @@ loc = LocData.new(offset: 0)
     "Struct(pos)"    => -> { LocStructPos.new(42) },
     "RubyStruct(kw)" => -> { LocRubyStKw.new(offset: 42) },
     "RubyStruct(pos)" => -> { LocRubyStPos.new(42) },
+    "Class(pos)"     => -> { LocClassPos.new(42) },
+    "Class(kw)"      => -> { LocClassKw.new(offset: 42) },
   }],
   ["CallNode (8 fields)", {
     "Data.define"    => -> { CNData.new(method: :foo, receiver: nil, args: cm,
@@ -57,6 +81,10 @@ loc = LocData.new(offset: 0)
                               block_params: cm, block_body: nil, has_block: false,
                               called_methods: cm, loc: loc) },
     "RubyStruct(pos)" => -> { CNRubyStPos.new(:foo, nil, cm, cm, nil, false, cm, loc) },
+    "Class(pos)"     => -> { CNClassPos.new(:foo, nil, cm, cm, nil, false, cm, loc) },
+    "Class(kw)"      => -> { CNClassKw.new(method: :foo, receiver: nil, args: cm,
+                              block_params: cm, block_body: nil, has_block: false,
+                              called_methods: cm, loc: loc) },
   }],
 ].each do |label, variants|
   puts "\n### #{label}"
@@ -73,6 +101,8 @@ n = 2_000_000
 { "Data.define"    => -> { Array.new(n) { |i| LocData.new(offset: i) } },
   "Struct(pos)"    => -> { Array.new(n) { |i| LocStructPos.new(i) } },
   "RubyStruct(pos)" => -> { Array.new(n) { |i| LocRubyStPos.new(i) } },
+  "Class(pos)"     => -> { Array.new(n) { |i| LocClassPos.new(i) } },
+  "Class(kw)"      => -> { Array.new(n) { |i| LocClassKw.new(offset: i) } },
   "Integer"        => -> { Array.new(n) { |i| i } },
 }.each do |label, block|
   3.times { GC.start(full_mark: true, immediate_sweep: true) }
@@ -80,15 +110,4 @@ n = 2_000_000
   block.call
   t = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
   printf "%-15s  %.3fs\n", label, t
-end
-
-# 3. メモリ
-puts "\n### Memory"
-[["Loc",  LocData.new(offset: 0), LocStructPos.new(0), LocRubyStPos.new(0)],
- ["LW",   LWData.new(name: :x, value: nil, called_methods: [], loc: loc),
-           LWStructPos.new(:x, nil, [], 0),
-           LWRubyStPos.new(:x, nil, [], 0)]
-].each do |label, d, s, rs|
-  printf "%-5s  Data: %dB  Struct: %dB  RubyStruct: %dB\n",
-    label, ObjectSpace.memsize_of(d), ObjectSpace.memsize_of(s), ObjectSpace.memsize_of(rs)
 end
