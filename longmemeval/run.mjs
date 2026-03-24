@@ -33,7 +33,7 @@ const FILES = {
 
 const RESULTS_FILE = 'output/results.jsonl';
 const QUESTIONS_DIR = 'output/questions';
-const CONCURRENCY = 3;
+const CONCURRENCY = 5;
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
