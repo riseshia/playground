@@ -22,7 +22,6 @@ Sessions → [Ingest] → facts.jsonl → [Search] → context → [Answer] → 
 
 ```bash
 # 1. Set API keys
-export ANTHROPIC_API_KEY=sk-ant-...
 export OPENAI_API_KEY=sk-...
 
 # 2. Download dataset (~277MB + 15MB)
