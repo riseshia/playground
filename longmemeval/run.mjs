@@ -17,6 +17,7 @@
 
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
+import { resolve } from 'path';
 import { ingest } from './ingest.mjs';
 import { search } from './search.mjs';
 import { answer } from './answer.mjs';
@@ -113,17 +114,11 @@ async function processQuestion(question) {
     writeFileSync(factsFile, facts.map(f => JSON.stringify(f)).join('\n') + '\n');
   }
 
-  // 2. Search
-  let retrieved;
-  if (existsSync(searchFile)) {
-    retrieved = JSON.parse(readFileSync(searchFile, 'utf-8'));
-    log(`search: cached (${retrieved.length} results)`);
-  } else {
-    log('search...');
-    retrieved = await search(question.question, facts);
-    writeFileSync(searchFile, JSON.stringify(retrieved, null, 2));
-    log(`search: done (${retrieved.length} results)`);
-  }
+  // 2. Search (always re-run)
+  log('search...');
+  const retrieved = await search(question.question, facts, resolve(factsFile));
+  writeFileSync(searchFile, JSON.stringify(retrieved, null, 2));
+  log(`search: done (${retrieved.length} results)`);
 
   // 3. Answer
   log('answer...');
