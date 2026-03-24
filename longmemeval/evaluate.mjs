@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-// Stage 4: Evaluate — Judge answer correctness using GPT-4o
+// Stage 4: Evaluate — Judge answer correctness via OpenRouter
 // Ports the LongMemEval evaluate_qa.py logic to JavaScript.
-// Each hypothesis is compared against the ground truth by GPT-4o.
+// Each hypothesis is compared against the ground truth by a judge model.
 //
 // Usage: node evaluate.mjs [--limit N] [--resume] [--model MODEL]
 //   --limit N     Process only the first N questions
 //   --resume      Skip questions already evaluated
-//   --model MODEL Override judge model (default: gpt-4o)
+//   --model MODEL Override judge model (default: openai/gpt-4o)
 
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
@@ -17,8 +17,8 @@ import { dirname } from 'path';
 const ORACLE_FILE = 'data/longmemeval_oracle.json';
 const HYPOTHESES_FILE = 'output/hypotheses.jsonl';
 const OUTPUT_FILE = 'output/eval_results.jsonl';
-const DEFAULT_MODEL = 'gpt-4o';
-const API_URL = 'https://api.openai.com/v1/chat/completions';
+const DEFAULT_MODEL = 'openai/gpt-4o';
+const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_RETRIES = 3;
 const CONCURRENCY = 10;
 
@@ -93,9 +93,9 @@ async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-async function callOpenAI(prompt, model, retries = MAX_RETRIES) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY not set');
+async function callOpenRouter(prompt, model, retries = MAX_RETRIES) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set');
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -232,7 +232,7 @@ async function main() {
           hyp.hypothesis,
         );
 
-        const response = await callOpenAI(prompt, opts.model);
+        const response = await callOpenRouter(prompt, opts.model);
         const label = response.toLowerCase().includes('yes');
 
         return {

@@ -10,7 +10,7 @@
 //   node run.mjs --limit N    Limit to N questions (for testing)
 //
 // Environment:
-//   OPENAI_API_KEY      Required for evaluate
+//   OPENROUTER_API_KEY  Required for evaluate
 // Prerequisites:
 //   claude CLI           Required for ingest/search/answer
 
@@ -95,8 +95,8 @@ function main() {
 
   // Check environment
   if (opts.command === 'run') {
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('Error: OPENAI_API_KEY not set (required for evaluate stage)');
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error('Error: OPENROUTER_API_KEY not set (required for evaluate stage)');
       process.exit(1);
     }
   }
