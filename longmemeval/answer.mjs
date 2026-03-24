@@ -10,13 +10,13 @@
 
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
+import { execFile } from 'child_process';
 
 // ─── Config ─────────────────────────────────────────────────────────
 
 const SEARCH_FILE = 'output/search_results.jsonl';
 const OUTPUT_FILE = 'output/hypotheses.jsonl';
 const DEFAULT_MODEL = 'claude-haiku-4-5-20250514';
-const API_URL = 'https://api.anthropic.com/v1/messages';
 const MAX_RETRIES = 3;
 const CONCURRENCY = 10;
 
@@ -48,40 +48,22 @@ async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-async function callClaude(messages, model, retries = MAX_RETRIES) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
+function callClaudeOnce(prompt, model) {
+  return new Promise((resolve, reject) => {
+    execFile('claude', ['-p', prompt, '--model', model, '--output-format', 'text', '--system-prompt', ''], {
+      maxBuffer: 10 * 1024 * 1024,
+    }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      resolve(stdout.trim());
+    });
+  });
+}
 
+async function callClaude(messages, model, retries = MAX_RETRIES) {
+  const prompt = messages.map(m => m.content).join('\n\n');
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 1024,
-          messages,
-        }),
-      });
-
-      if (res.status === 429 || res.status >= 500) {
-        const wait = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-        console.error(`  [retry ${attempt + 1}/${retries}] HTTP ${res.status}`);
-        await sleep(wait);
-        continue;
-      }
-
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`API error ${res.status}: ${body}`);
-      }
-
-      const data = await res.json();
-      return data.content[0].text;
+      return await callClaudeOnce(prompt, model);
     } catch (err) {
       if (attempt === retries) throw err;
       await sleep(Math.pow(2, attempt) * 1000);

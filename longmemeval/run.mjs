@@ -10,8 +10,9 @@
 //   node run.mjs --limit N    Limit to N questions (for testing)
 //
 // Environment:
-//   ANTHROPIC_API_KEY   Required for ingest/search/answer
 //   OPENAI_API_KEY      Required for evaluate
+// Prerequisites:
+//   claude CLI           Required for ingest/search/answer
 
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
@@ -94,12 +95,8 @@ function main() {
 
   // Check environment
   if (opts.command === 'run') {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('Error: ANTHROPIC_API_KEY not set');
-      process.exit(1);
-    }
     if (!process.env.OPENAI_API_KEY) {
-      console.error('Error: OPENAI_API_KEY not set');
+      console.error('Error: OPENAI_API_KEY not set (required for evaluate stage)');
       process.exit(1);
     }
   }
