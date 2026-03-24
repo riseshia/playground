@@ -28,7 +28,7 @@ Rules:
 Respond with a JSON array only, no markdown:
 [{"type": "...", "fact": "...", "keywords": ["...", "..."]}]`;
 
-const CONCURRENCY = 5;
+const CONCURRENCY = 10;
 
 /**
  * Extract facts from a list of sessions.

@@ -247,12 +247,43 @@ async function main() {
       }
     }
 
+    // バッチごとの中間レポートをログに出力
     const done = Math.min(i + CONCURRENCY, toProcess.length);
     const pct = Math.round(done / toProcess.length * 100);
     const acc = total > 0 ? (correct / total * 100).toFixed(1) : '0.0';
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
     const eta = total > 0 ? ((Date.now() - startTime) / total * (toProcess.length - done) / 1000 / 60).toFixed(1) : '?';
-    process.stderr.write(`\r  [${pct}%] ${done}/${toProcess.length} | accuracy: ${acc}% | ${elapsed}s elapsed | ~${eta}min remaining`);
+
+    // 今回のバッチ結果を表示
+    for (let j = 0; j < results.length; j++) {
+      const r = results[j];
+      const qid = batch[j]?.question_id || 'unknown';
+      const qtype = batch[j]?.question_type || '?';
+      if (r.status === 'fulfilled') {
+        const mark = r.value.label ? '✓' : '✗';
+        console.log(`  ${mark} ${qid} [${qtype}] → ${r.value.label ? 'correct' : 'incorrect'}`);
+      } else {
+        console.log(`  ✗ ${qid} [${qtype}] → error: ${r.reason?.message || r.reason}`);
+      }
+    }
+
+    // タイプ別の正答率を集計
+    const byType = {};
+    readFileSync(RESULTS_FILE, 'utf-8').split('\n').filter(Boolean).forEach(line => {
+      try {
+        const r = JSON.parse(line);
+        const t = r.question_type || 'unknown';
+        if (!byType[t]) byType[t] = { correct: 0, total: 0 };
+        byType[t].total++;
+        if (r.label) byType[t].correct++;
+      } catch {}
+    });
+    const typeReport = Object.entries(byType)
+      .map(([t, s]) => `${t}: ${s.correct}/${s.total}`)
+      .join(', ');
+
+    console.log(`  [${pct}%] ${done}/${toProcess.length} | accuracy: ${acc}% (${correct}/${total}) | ${elapsed}s elapsed | ~${eta}min remaining`);
+    console.log(`  by type: ${typeReport}\n`);
   }
 
   const totalTime = ((Date.now() - startTime) / 1000 / 60).toFixed(1);

@@ -15,7 +15,7 @@ export async function sleep(ms) {
 /**
  * Call Claude via the CLI (uses local subscription).
  */
-export async function callClaude(prompt, { model = 'claude-haiku-4-5', retries = MAX_RETRIES } = {}) {
+export async function callClaude(prompt, { model = process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || 'claude-haiku-4-5', retries = MAX_RETRIES } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await new Promise((resolve, reject) => {
