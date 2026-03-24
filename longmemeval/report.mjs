@@ -1,26 +1,20 @@
 #!/usr/bin/env node
 
-// Stage 5: Report — Aggregate evaluation results by category
-// Reads eval_results.jsonl and prints accuracy breakdown.
-//
-// Usage: node report.mjs
+// Stage 5: Report — Aggregate evaluation results by category.
+// Reads output/results.jsonl and prints accuracy breakdown.
 
 import { readFileSync, existsSync } from 'fs';
 
-// ─── Config ─────────────────────────────────────────────────────────
-
-const EVAL_FILE = 'output/eval_results.jsonl';
-
-// ─── Main ───────────────────────────────────────────────────────────
+const RESULTS_FILE = 'output/results.jsonl';
 
 function main() {
-  if (!existsSync(EVAL_FILE)) {
-    console.error(`Eval results not found: ${EVAL_FILE}`);
-    console.error('Run: node evaluate.mjs');
+  if (!existsSync(RESULTS_FILE)) {
+    console.error(`Results not found: ${RESULTS_FILE}`);
+    console.error('Run: node run.mjs');
     process.exit(1);
   }
 
-  const results = readFileSync(EVAL_FILE, 'utf-8')
+  const results = readFileSync(RESULTS_FILE, 'utf-8')
     .split('\n')
     .filter(Boolean)
     .map(line => JSON.parse(line));
@@ -30,13 +24,13 @@ function main() {
     return;
   }
 
-  // Group by question type
   const byType = {};
   let totalCorrect = 0;
   let totalCount = 0;
 
   for (const r of results) {
     const type = r.question_type;
+    if (!type) continue;
     if (!byType[type]) byType[type] = { correct: 0, total: 0 };
     byType[type].total++;
     totalCount++;
@@ -46,18 +40,16 @@ function main() {
     }
   }
 
-  // Print report
   const LINE = '═'.repeat(55);
   console.log();
   console.log(LINE);
-  console.log('  LongMemEval_s Results (ASMR-lite / JSONL+grep)');
+  console.log('  LongMemEval_s Results (ASMR-lite / JSONL + grep)');
   console.log(LINE);
   console.log();
   console.log(`  Overall: ${totalCorrect}/${totalCount} (${(totalCorrect / totalCount * 100).toFixed(1)}%)`);
   console.log();
   console.log('  By Category:');
 
-  // Sort types for consistent display
   const typeOrder = [
     'single-session-user',
     'single-session-assistant',
@@ -68,7 +60,6 @@ function main() {
   ];
 
   const types = typeOrder.filter(t => byType[t]);
-  // Add any types not in the predefined order
   for (const t of Object.keys(byType)) {
     if (!types.includes(t)) types.push(t);
   }
@@ -82,8 +73,6 @@ function main() {
 
   console.log();
   console.log(LINE);
-
-  // Reference scores for comparison
   console.log();
   console.log('  Reference scores (LongMemEval_s):');
   console.log('    Supermemory ASMR:              81.6%');

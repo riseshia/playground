@@ -1,24 +1,7 @@
-#!/usr/bin/env node
+// Stage 1: Ingest — Extract structured facts from conversation sessions.
+// Given a list of sessions (one question's haystack), extract memorable facts.
 
-// Stage 1: Ingest — Extract structured facts from conversation sessions
-// Reads longmemeval_s_cleaned.json, sends each session to Claude Haiku,
-// and writes extracted facts to output/facts.jsonl
-//
-// Usage: node ingest.mjs [--limit N] [--resume]
-//   --limit N   Process only the first N questions (for testing)
-//   --resume    Skip sessions already processed (based on facts.jsonl)
-
-import { readFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
-import { execFile } from 'child_process';
-
-// ─── Config ─────────────────────────────────────────────────────────
-
-const DATA_FILE = 'data/longmemeval_s_cleaned.json';
-const OUTPUT_FILE = 'output/facts.jsonl';
-const MODEL = 'claude-haiku-4-5';
-const MAX_RETRIES = 3;
-const CONCURRENCY = 5;
+import { callClaude, parseJSON, formatSession } from './lib.mjs';
 
 const EXTRACT_PROMPT = `You are a memory extraction agent. Given a conversation between a user and an assistant, extract all memorable facts as structured JSON.
 
@@ -45,189 +28,55 @@ Rules:
 Respond with a JSON array only, no markdown:
 [{"type": "...", "fact": "...", "keywords": ["...", "..."]}]`;
 
-// ─── Helpers ────────────────────────────────────────────────────────
+const CONCURRENCY = 5;
 
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const opts = { limit: 0, resume: false };
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--limit' && args[i + 1]) opts.limit = parseInt(args[i + 1], 10);
-    if (args[i] === '--resume') opts.resume = true;
-  }
-  return opts;
-}
+/**
+ * Extract facts from a list of sessions.
+ * @param {Array<{id: string, messages: Array, date: string}>} sessions
+ * @returns {Promise<Array<{id: string, session_id: string, date: string, type: string, fact: string, keywords: string[]}>>}
+ */
+export async function ingest(sessions, { log = () => {} } = {}) {
+  const allFacts = [];
+  let factCounter = 0;
 
-async function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-function callClaudeOnce(prompt) {
-  return new Promise((resolve, reject) => {
-    execFile('claude', ['-p', prompt, '--model', MODEL, '--output-format', 'text', '--system-prompt', ''], {
-      maxBuffer: 10 * 1024 * 1024,
-    }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
-      resolve(stdout.trim());
-    });
-  });
-}
-
-async function callClaude(messages, retries = MAX_RETRIES) {
-  const prompt = messages.map(m => m.content).join('\n\n');
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await callClaudeOnce(prompt);
-    } catch (err) {
-      if (attempt === retries) throw err;
-      const wait = Math.pow(2, attempt) * 1000;
-      console.error(`  [retry ${attempt + 1}/${retries}] ${err.message}, waiting ${wait}ms`);
-      await sleep(wait);
-    }
-  }
-}
-
-function formatSession(messages) {
-  return messages
-    .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-    .join('\n\n');
-}
-
-function loadProcessedSessionIds() {
-  if (!existsSync(OUTPUT_FILE)) return new Set();
-  const lines = readFileSync(OUTPUT_FILE, 'utf-8').split('\n').filter(Boolean);
-  const ids = new Set();
-  for (const line of lines) {
-    try {
-      const fact = JSON.parse(line);
-      ids.add(fact.session_id);
-    } catch { /* skip */ }
-  }
-  return ids;
-}
-
-// ─── Main ───────────────────────────────────────────────────────────
-
-async function main() {
-  const opts = parseArgs();
-
-  if (!existsSync(DATA_FILE)) {
-    console.error(`Dataset not found: ${DATA_FILE}`);
-    console.error('Run: node run.mjs download');
-    process.exit(1);
-  }
-
-  mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
-
-  console.log('Loading dataset...');
-  const dataset = JSON.parse(readFileSync(DATA_FILE, 'utf-8'));
-
-  // Collect unique sessions across all questions
-  // Each question has haystack_sessions (array of session arrays) with corresponding IDs and dates
-  const sessionMap = new Map(); // session_id -> { messages, date }
-  for (const q of dataset) {
-    for (let i = 0; i < q.haystack_session_ids.length; i++) {
-      const sid = q.haystack_session_ids[i];
-      if (!sessionMap.has(sid)) {
-        sessionMap.set(sid, {
-          messages: q.haystack_sessions[i],
-          date: q.haystack_dates[i],
-        });
-      }
-    }
-  }
-
-  let sessions = Array.from(sessionMap.entries()).map(([id, data]) => ({
-    id,
-    messages: data.messages,
-    date: data.date,
-  }));
-
-  console.log(`Found ${sessions.length} unique sessions across ${dataset.length} questions`);
-
-  // Resume support
-  if (opts.resume) {
-    const processed = loadProcessedSessionIds();
-    const before = sessions.length;
-    sessions = sessions.filter(s => !processed.has(s.id));
-    console.log(`Resuming: ${before - sessions.length} already processed, ${sessions.length} remaining`);
-  }
-
-  if (opts.limit > 0) {
-    sessions = sessions.slice(0, opts.limit);
-    console.log(`Limited to ${sessions.length} sessions`);
-  }
-
-  console.log(`Processing ${sessions.length} sessions...`);
-  let factCount = 0;
-  let processed = 0;
-
-  // Process in batches for concurrency
   for (let i = 0; i < sessions.length; i += CONCURRENCY) {
     const batch = sessions.slice(i, i + CONCURRENCY);
     const results = await Promise.allSettled(
       batch.map(async (session) => {
-        const text = formatSession(session.messages);
+        const text = formatSession(session.messages, session.date);
+        if (text.length < 100) return [];
 
-        // Skip very short sessions (likely no useful facts)
-        if (text.length < 50) return [];
+        const response = await callClaude(
+          `${EXTRACT_PROMPT}\n\n--- CONVERSATION (${session.date}) ---\n${text}`
+        );
 
-        const response = await callClaude([
-          { role: 'user', content: `${EXTRACT_PROMPT}\n\n--- CONVERSATION (${session.date}) ---\n${text}` },
-        ]);
-
-        // Parse JSON from response
-        let facts;
+        let extracted;
         try {
-          // Handle potential markdown wrapping
-          const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          facts = JSON.parse(cleaned);
+          extracted = parseJSON(response);
         } catch {
-          console.error(`  Failed to parse response for session ${session.id}`);
           return [];
         }
 
-        if (!Array.isArray(facts)) return [];
+        if (!Array.isArray(extracted)) return [];
 
-        // Write facts to JSONL
-        const lines = [];
-        for (const f of facts) {
-          const fact = {
-            id: `f_${session.id}_${lines.length}`,
-            session_id: session.id,
-            date: session.date,
-            type: f.type || 'personal_info',
-            fact: f.fact,
-            keywords: (f.keywords || []).map(k => k.toLowerCase()),
-          };
-          if (f.supersedes) fact.supersedes = f.supersedes;
-          lines.push(JSON.stringify(fact));
-        }
-
-        if (lines.length > 0) {
-          appendFileSync(OUTPUT_FILE, lines.join('\n') + '\n');
-        }
-
-        return facts;
+        return extracted.map(f => ({
+          id: `f_${factCounter++}`,
+          session_id: session.id,
+          date: session.date,
+          type: f.type || 'personal_info',
+          fact: f.fact,
+          keywords: (f.keywords || []).map(k => k.toLowerCase()),
+        }));
       })
     );
 
     for (const r of results) {
-      processed++;
-      if (r.status === 'fulfilled') {
-        factCount += r.value.length;
-      } else {
-        console.error(`  Error: ${r.reason?.message || r.reason}`);
-      }
+      if (r.status === 'fulfilled') allFacts.push(...r.value);
     }
 
-    const pct = Math.round((Math.min(i + CONCURRENCY, sessions.length) / sessions.length) * 100);
-    process.stderr.write(`\r  [${pct}%] ${Math.min(i + CONCURRENCY, sessions.length)}/${sessions.length} sessions, ${factCount} facts extracted`);
+    const done = Math.min(i + CONCURRENCY, sessions.length);
+    log(`ingest: ${done}/${sessions.length} sessions, ${allFacts.length} facts`);
   }
 
-  console.log(`\nDone. Extracted ${factCount} facts from ${processed} sessions → ${OUTPUT_FILE}`);
+  return allFacts;
 }
-
-main().catch(err => {
-  console.error('Fatal:', err.message);
-  process.exit(1);
-});
