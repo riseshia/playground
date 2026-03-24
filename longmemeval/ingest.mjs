@@ -16,7 +16,7 @@ import { execFile } from 'child_process';
 
 const DATA_FILE = 'data/longmemeval_s_cleaned.json';
 const OUTPUT_FILE = 'output/facts.jsonl';
-const MODEL = 'claude-haiku-4-5-20250514';
+const MODEL = 'claude-haiku-4-5';
 const MAX_RETRIES = 3;
 const CONCURRENCY = 5;
 

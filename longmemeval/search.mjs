@@ -18,7 +18,7 @@ import { execFile } from 'child_process';
 const ORACLE_FILE = 'data/longmemeval_oracle.json';
 const FACTS_FILE = 'output/facts.jsonl';
 const OUTPUT_FILE = 'output/search_results.jsonl';
-const MODEL = 'claude-haiku-4-5-20250514';
+const MODEL = 'claude-haiku-4-5';
 const MAX_RETRIES = 3;
 const CONCURRENCY = 10;
 const DEFAULT_TOP_K = 15;

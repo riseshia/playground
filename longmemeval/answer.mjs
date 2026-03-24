@@ -6,7 +6,7 @@
 // Usage: node answer.mjs [--limit N] [--resume] [--model MODEL]
 //   --limit N     Process only the first N questions
 //   --resume      Skip questions already answered
-//   --model MODEL Override model (default: claude-haiku-4-5-20250514)
+//   --model MODEL Override model (default: claude-haiku-4-5)
 
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
@@ -16,7 +16,7 @@ import { execFile } from 'child_process';
 
 const SEARCH_FILE = 'output/search_results.jsonl';
 const OUTPUT_FILE = 'output/hypotheses.jsonl';
-const DEFAULT_MODEL = 'claude-haiku-4-5-20250514';
+const DEFAULT_MODEL = 'claude-haiku-4-5';
 const MAX_RETRIES = 3;
 const CONCURRENCY = 10;
 
