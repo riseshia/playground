@@ -1,3 +1,9 @@
+PATH
+  remote: ../poc/ruby_lsp_runtime_type
+  specs:
+    ruby_lsp_runtime_type (0.1.0)
+      ruby-lsp (~> 0.26)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -99,6 +105,7 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.19.3)
+    language_server-protocol (3.17.0.5)
     logger (1.7.0)
     loofah (2.25.1)
       crass (~> 1.0.2)
@@ -189,12 +196,20 @@ GEM
       tsort (>= 0.2)
       zeitwerk (~> 2.6)
     rake (13.3.1)
+    rbs (4.0.2)
+      logger
+      prism (>= 1.6.0)
+      tsort
     rdoc (7.2.0)
       erb
       psych (>= 4.0.0)
       tsort
     reline (0.6.3)
       io-console (~> 0.5)
+    ruby-lsp (0.26.9)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 1.2, < 2.0)
+      rbs (>= 3, < 5)
     securerandom (0.4.1)
     sqlite3 (2.9.2-aarch64-linux-gnu)
     sqlite3 (2.9.2-aarch64-linux-musl)
@@ -232,6 +247,8 @@ DEPENDENCIES
   debug
   puma (>= 5.0)
   rails (~> 8.1.2)
+  ruby-lsp
+  ruby_lsp_runtime_type!
   sqlite3 (>= 2.1)
   tzinfo-data
 
