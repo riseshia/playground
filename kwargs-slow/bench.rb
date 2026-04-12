@@ -61,7 +61,8 @@ loc = LocData.new(offset: 0)
 # 1. 単一オブジェクト生成
 [
   ["Loc (1 field)", {
-    "Data.define"    => -> { LocData.new(offset: 42) },
+    "Data.define(kw)" => -> { LocData.new(offset: 42) },
+    "Data.define(pos)" => -> { LocData.new(42) },
     "Struct(kw)"     => -> { LocStructKw.new(offset: 42) },
     "Struct(pos)"    => -> { LocStructPos.new(42) },
     "RubyStruct(kw)" => -> { LocRubyStKw.new(offset: 42) },
@@ -70,9 +71,10 @@ loc = LocData.new(offset: 0)
     "Class(kw)"      => -> { LocClassKw.new(offset: 42) },
   }],
   ["CallNode (8 fields)", {
-    "Data.define"    => -> { CNData.new(method: :foo, receiver: nil, args: cm,
+    "Data.define(kw)" => -> { CNData.new(method: :foo, receiver: nil, args: cm,
                              block_params: cm, block_body: nil, has_block: false,
                              called_methods: cm, loc: loc) },
+    "Data.define(pos)" => -> { CNData.new(:foo, nil, cm, cm, nil, false, cm, loc) },
     "Struct(kw)"     => -> { CNStructKw.new(method: :foo, receiver: nil, args: cm,
                              block_params: cm, block_body: nil, has_block: false,
                              called_methods: cm, loc: loc) },
@@ -98,7 +100,8 @@ end
 # 2. バルク生成 (200万オブジェク)
 puts "\n### Bulk: Loc 2M objects"
 n = 2_000_000
-{ "Data.define"    => -> { Array.new(n) { |i| LocData.new(offset: i) } },
+{ "Data.define(kw)" => -> { Array.new(n) { |i| LocData.new(offset: i) } },
+  "Data.define(pos)" => -> { Array.new(n) { |i| LocData.new(i) } },
   "Struct(pos)"    => -> { Array.new(n) { |i| LocStructPos.new(i) } },
   "RubyStruct(pos)" => -> { Array.new(n) { |i| LocRubyStPos.new(i) } },
   "Class(pos)"     => -> { Array.new(n) { |i| LocClassPos.new(i) } },
