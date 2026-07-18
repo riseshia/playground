@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+# mvm — microVM セッションオーケストレーターの最小実装(教材用)。
+#
+# この 1 ファイルが Step 4a/4b の成果物であり、この랩の主眼。
+# ブート API 呼び出しは create() の中の ~15 行だけ。残りは全部
+#   ネットワーク(tap/subnet/MAC の派生) + ライフサイクル + 後始末。
+# 「イメージは簡単、オーケストレーションが本体」を行数で体感するための装置。
+#
+#   mvm create <id>     セッション <id> の microVM を起動
+#   mvm list            起動中セッション一覧
+#   mvm destroy <id>    正常終了 + リソース回収
+#   mvm gc              孤児リソース(死んだ FC の tap/socket/dir)を掃除
+set -euo pipefail
+
+STATE_DIR="${MVM_STATE_DIR:-/srv/mvm}"
+KERNEL="${MVM_KERNEL:-${STATE_DIR}/vmlinux}"
+BASE_ROOTFS="${MVM_ROOTFS:-${STATE_DIR}/rootfs.ext4}"
+FC_BIN="${MVM_FC:-/usr/local/bin/firecracker}"
+
+# --- id からネットワーク資源を決定論的に派生(衝突を防ぐ肝) ---
+# 罠 #4: 設定 JSON をコピペすると N 番目で MAC/IP/tap 名が衝突する。
+derive_net() {
+  local id=$1
+  TAP="fc-tap${id}"
+  HOST_IP="172.16.${id}.1"
+  GUEST_IP="172.16.${id}.2"
+  MASK="255.255.255.252"                          # /30(VM ごとに独立サブネット)
+  MAC="$(printf '06:00:AC:10:%02x:02' "$id")"
+}
+
+api() { # api <sock> <path> <json>
+  curl -fsS --unix-socket "$1" -X PUT "http://localhost$2" \
+    -H 'content-type: application/json' -d "$3" >/dev/null
+}
+
+cmd_create() {
+  local id="${1:?usage: mvm create <id>}"
+  local vmdir="${STATE_DIR}/${id}"
+  [[ -f "$KERNEL" && -f "$BASE_ROOTFS" ]] || { echo "kernel/rootfs が無い。Step 0/2 を先に。" >&2; exit 1; }
+  derive_net "$id"
+  mkdir -p "$vmdir"
+
+  # per-session rootfs 사본。reflink が効けば一瞬、効かなければ丸ごとコピー = ディスク単調増加。
+  cp --reflink=auto "$BASE_ROOTFS" "${vmdir}/rootfs.ext4"
+
+  # tap を作ってホスト側 IP を付与(罠 #5 対策で先に消す)
+  ip link del "$TAP" 2>/dev/null || true
+  ip tuntap add "$TAP" mode tap
+  ip addr add "${HOST_IP}/30" dev "$TAP"
+  ip link set "$TAP" up
+
+  # FC プロセス起動(VM ごとに 1 プロセス、1 API socket)
+  local sock="${vmdir}/fc.sock"
+  rm -f "$sock"
+  "$FC_BIN" --api-sock "$sock" &>"${vmdir}/fc.log" &
+  echo $! > "${vmdir}/fc.pid"
+  for _ in $(seq 1 50); do [[ -S "$sock" ]] && break; sleep 0.05; done
+
+  # ===== ここからが「本質の 15 行」= ブート API =====
+  # 罠 #1/#2/#6: console=ttyS0 必須(無いとシリアル無出力)、root=/dev/vda(sda ではない)。
+  #             pci=off は v1.16 で入れない。ip= でゲスト NW を自動設定。
+  api "$sock" /boot-source \
+    "{\"kernel_image_path\":\"${KERNEL}\",\"boot_args\":\"console=ttyS0 reboot=k panic=1 root=/dev/vda ip=${GUEST_IP}::${HOST_IP}:${MASK}::eth0:off\"}"
+  api "$sock" /drives/rootfs \
+    "{\"drive_id\":\"rootfs\",\"path_on_host\":\"${vmdir}/rootfs.ext4\",\"is_root_device\":true,\"is_read_only\":false}"
+  api "$sock" /network-interfaces/eth0 \
+    "{\"iface_id\":\"eth0\",\"guest_mac\":\"${MAC}\",\"host_dev_name\":\"${TAP}\"}"
+  api "$sock" /machine-config '{"vcpu_count":1,"mem_size_mib":128}'
+  # MMDS V2(V1 は deprecated。version 省略時の既定が V1 なので明示する)。session_id を注入。
+  api "$sock" /mmds/config "{\"version\":\"V2\",\"network_interfaces\":[\"eth0\"]}"
+  api "$sock" /mmds "{\"session_id\":\"sess-${id}\"}"
+  api "$sock" /actions '{"action_type":"InstanceStart"}'
+  # ===============================================
+
+  echo "created session ${id}: guest=${GUEST_IP}  tap=${TAP}  pid=$(cat "${vmdir}/fc.pid")"
+  echo "  試す: curl -s http://${GUEST_IP}:8080/health"
+}
+
+cmd_list() {
+  printf '%-6s %-8s %-14s %-8s %s\n' ID PID GUEST_IP TAP STATE
+  for d in "$STATE_DIR"/*/; do
+    [[ -f "${d}fc.pid" ]] || continue
+    local id pid state; id="$(basename "$d")"; pid="$(cat "${d}fc.pid")"
+    derive_net "$id"
+    if kill -0 "$pid" 2>/dev/null; then state=running; else state=DEAD; fi
+    printf '%-6s %-8s %-14s %-8s %s\n' "$id" "$pid" "$GUEST_IP" "$TAP" "$state"
+  done
+}
+
+cmd_destroy() {
+  local id="${1:?usage: mvm destroy <id>}"
+  local vmdir="${STATE_DIR}/${id}"
+  derive_net "$id"
+  [[ -f "${vmdir}/fc.pid" ]] && kill "$(cat "${vmdir}/fc.pid")" 2>/dev/null || true
+  ip link del "$TAP" 2>/dev/null || true          # FC は tap を自分で消さない
+  rm -rf "$vmdir"                                  # rootfs 사본・socket・log ごと
+  echo "destroyed ${id}"
+}
+
+# 罠のまとめ: FC は異常終了しても tap/socket/disk を残す。
+# オーケストレーターの本体は「正常系」ではなく「この後始末」。kill -9 で体感せよ。
+cmd_gc() {
+  local reaped=0
+  for d in "$STATE_DIR"/*/; do
+    [[ -f "${d}fc.pid" ]] || continue
+    local id pid; id="$(basename "$d")"; pid="$(cat "${d}fc.pid")"
+    if ! kill -0 "$pid" 2>/dev/null; then
+      derive_net "$id"
+      ip link del "$TAP" 2>/dev/null || true
+      rm -rf "$d"
+      echo "reaped dead session ${id} (tap ${TAP}, dir ${d})"
+      reaped=$((reaped+1))
+    fi
+  done
+  # mvm の管理外に漏れた孤児 tap も掃除
+  for tap in $(ip -o link show | grep -oE 'fc-tap[0-9]+' | sort -u); do
+    local id="${tap#fc-tap}"
+    [[ -d "${STATE_DIR}/${id}" ]] || { ip link del "$tap" 2>/dev/null && echo "reaped orphan ${tap}"; reaped=$((reaped+1)); }
+  done
+  echo "gc done. reaped=${reaped}"
+}
+
+case "${1:-}" in
+  create)  shift; cmd_create "$@";;
+  list)    shift; cmd_list "$@";;
+  destroy) shift; cmd_destroy "$@";;
+  gc)      shift; cmd_gc "$@";;
+  *) echo "usage: mvm {create <id>|list|destroy <id>|gc}" >&2; exit 1;;
+esac
