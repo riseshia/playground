@@ -1,0 +1,312 @@
+# Each case asks one yes/no question of two texts that differ in one place.
+# `holds` is the text the answer is yes for, `fails` the one it is no for.
+
+- phenomenon: final_negation
+  question:
+    en: Does this software support Linux?
+    ja: このソフトはLinuxに対応していますか?
+    ko: 이 소프트웨어는 Linux를 지원하나요?
+  texts:
+    en: {holds: "This software supports Linux.", fails: "This software does not support Linux."}
+    ja: {holds: "このソフトはLinuxに対応している。", fails: "このソフトはLinuxに対応していない。"}
+    ko: {holds: "이 소프트웨어는 Linux를 지원한다.", fails: "이 소프트웨어는 Linux를 지원하지 않는다."}
+
+- phenomenon: final_negation
+  question:
+    en: Has a second season been confirmed?
+    ja: 第2期の制作は決定していますか?
+    ko: 2기 제작이 확정되었나요?
+  texts:
+    en: {holds: "Production of a second season of the anime has been confirmed.", fails: "Production of a second season of the anime has not been confirmed."}
+    ja: {holds: "アニメ第2期の制作が決定しました。", fails: "アニメ第2期の制作は決定していません。"}
+    ko: {holds: "애니메이션 2기 제작이 확정되었습니다.", fails: "애니메이션 2기 제작은 확정되지 않았습니다."}
+
+- phenomenon: final_negation
+  question:
+    en: Will the event take place?
+    ja: イベントは開催されますか?
+    ko: 이벤트는 열리나요?
+  texts:
+    en: {holds: "The fan event scheduled for this weekend will be held as planned.", fails: "The fan event scheduled for this weekend will not be held."}
+    ja: {holds: "今週末に予定していたファンイベントは予定通り開催いたします。", fails: "今週末に予定していたファンイベントは開催いたしません。"}
+    ko: {holds: "이번 주말로 예정된 팬 이벤트는 예정대로 개최합니다.", fails: "이번 주말로 예정된 팬 이벤트는 개최하지 않습니다."}
+
+- phenomenon: final_negation
+  question:
+    en: Can this API be used free of charge?
+    ja: このAPIは無料で使えますか?
+    ko: 이 API는 무료로 쓸 수 있나요?
+  texts:
+    en: {holds: "This API can be used for free.", fails: "This API cannot be used for free."}
+    ja: {holds: "このAPIは無料で利用できます。", fails: "このAPIは無料では利用できません。"}
+    ko: {holds: "이 API는 무료로 이용할 수 있습니다.", fails: "이 API는 무료로는 이용할 수 없습니다."}
+
+- phenomenon: final_negation
+  question:
+    en: Was the bug fixed in this release?
+    ja: このリリースで不具合は修正されましたか?
+    ko: 이번 릴리스에서 버그가 수정되었나요?
+  texts:
+    en: {holds: "The login bug reported last week was fixed in this release.", fails: "The login bug reported last week was not fixed in this release."}
+    ja: {holds: "先週報告されたログインの不具合は、今回のリリースで修正された。", fails: "先週報告されたログインの不具合は、今回のリリースでは修正されなかった。"}
+    ko: {holds: "지난주에 보고된 로그인 버그는 이번 릴리스에서 수정되었다.", fails: "지난주에 보고된 로그인 버그는 이번 릴리스에서 수정되지 않았다."}
+
+- phenomenon: final_negation
+  question:
+    en: Does the reviewer recommend the film?
+    ja: 筆者はこの映画を勧めていますか?
+    ko: 글쓴이는 이 영화를 추천하나요?
+  texts:
+    en: {holds: "I saw the film on opening day. I would recommend it to people who have not read the original.", fails: "I saw the film on opening day. I would not recommend it to people who have not read the original."}
+    ja: {holds: "公開初日に観てきた。原作を読んでいない人にはおすすめできる。", fails: "公開初日に観てきた。原作を読んでいない人にはおすすめできない。"}
+    ko: {holds: "개봉 첫날 보고 왔다. 원작을 읽지 않은 사람에게는 추천할 만하다.", fails: "개봉 첫날 보고 왔다. 원작을 읽지 않은 사람에게는 추천하기 어렵다."}
+
+- phenomenon: double_negation
+  question:
+    en: Is the speaker able to participate?
+    ja: 話し手は参加できますか?
+    ko: 화자는 참가할 수 있나요?
+  texts:
+    en: {holds: "It is not that I cannot participate.", fails: "It is not that I can participate."}
+    ja: {holds: "参加できないわけではありません。", fails: "参加できるわけではありません。"}
+    ko: {holds: "참가할 수 없는 것은 아닙니다.", fails: "참가할 수 있는 것은 아닙니다."}
+
+- phenomenon: double_negation
+  question:
+    en: Did the speaker end up agreeing?
+    ja: 話し手は結局同意しましたか?
+    ko: 화자는 결국 동의했나요?
+  texts:
+    en: {holds: "I could not help but agree with the proposal.", fails: "I could not agree with the proposal."}
+    ja: {holds: "その提案には同意せざるを得なかった。", fails: "その提案には同意できなかった。"}
+    ko: {holds: "그 제안에는 동의하지 않을 수 없었다.", fails: "그 제안에는 동의할 수 없었다."}
+
+- phenomenon: double_negation
+  question:
+    en: Did everyone pass the exam?
+    ja: 全員が試験に合格しましたか?
+    ko: 모두가 시험에 합격했나요?
+  texts:
+    en: {holds: "There was no one who did not pass the exam.", fails: "There was no one who passed the exam."}
+    ja: {holds: "試験に合格しなかった人はいなかった。", fails: "試験に合格した人はいなかった。"}
+    ko: {holds: "시험에 합격하지 못한 사람은 없었다.", fails: "시험에 합격한 사람은 없었다."}
+
+- phenomenon: double_negation
+  question:
+    en: Does the writer think the feature has some use?
+    ja: 筆者はこの機能に使い道があると考えていますか?
+    ko: 글쓴이는 이 기능이 쓸모가 있다고 생각하나요?
+  texts:
+    en: {holds: "This feature is not useless.", fails: "This feature is not useful."}
+    ja: {holds: "この機能は役に立たないことはない。", fails: "この機能が役に立つことはない。"}
+    ko: {holds: "이 기능이 쓸모없는 것은 아니다.", fails: "이 기능이 쓸모 있는 것은 아니다."}
+
+- phenomenon: double_negation
+  question:
+    en: Must the form be submitted?
+    ja: 書類は提出しなければなりませんか?
+    ko: 서류를 제출해야 하나요?
+  texts:
+    en: {holds: "You cannot get by without submitting the form.", fails: "You can get by without submitting the form."}
+    ja: {holds: "書類を提出しないわけにはいきません。", fails: "書類は提出しなくてもかまいません。"}
+    ko: {holds: "서류를 제출하지 않으면 안 됩니다.", fails: "서류는 제출하지 않아도 됩니다."}
+
+- phenomenon: indirect_refusal
+  question:
+    en: Did the speaker accept the request?
+    ja: 話し手は依頼を引き受けましたか?
+    ko: 화자는 의뢰를 받아들였나요?
+  texts:
+    en: {holds: "Thank you for the offer. We would be glad to take it on.", fails: "Thank you for the offer. I am afraid we will have to pass this time."}
+    ja: {holds: "ご依頼ありがとうございます。ぜひお引き受けいたします。", fails: "ご依頼ありがとうございます。今回は見送らせていただきます。"}
+    ko: {holds: "의뢰 감사합니다. 기꺼이 맡겠습니다.", fails: "의뢰 감사합니다. 이번에는 어려울 것 같습니다."}
+
+- phenomenon: indirect_refusal
+  question:
+    en: Did the speaker accept the request?
+    ja: 話し手は依頼を引き受けましたか?
+    ko: 화자는 의뢰를 받아들였나요?
+  texts:
+    en: {holds: "Regarding your request, we will proceed as you proposed.", fails: "Regarding your request, that would be rather difficult for us."}
+    ja: {holds: "ご依頼の件、ご提案の通り進めさせていただきます。", fails: "ご依頼の件、弊社としてはなかなか難しいかと存じます。"}
+    ko: {holds: "의뢰하신 건은 제안하신 대로 진행하겠습니다.", fails: "의뢰하신 건은 저희로서는 좀 곤란할 것 같습니다."}
+
+- phenomenon: indirect_refusal
+  question:
+    en: Does the customer want a bag?
+    ja: 客は袋を希望していますか?
+    ko: 손님은 봉투를 원하나요?
+  texts:
+    en: {holds: "Clerk: Would you like a bag? Customer: Yes, please.", fails: "Clerk: Would you like a bag? Customer: I'm good, thanks."}
+    ja: {holds: "店員「袋はご利用ですか?」客「はい、お願いします。」", fails: "店員「袋はご利用ですか?」客「結構です。」"}
+    ko: {holds: "점원: 봉투 필요하세요? 손님: 네, 주세요.", fails: "점원: 봉투 필요하세요? 손님: 괜찮아요."}
+
+- phenomenon: indirect_refusal
+  question:
+    en: Will the speaker come to the party tonight?
+    ja: 話し手は今夜の飲み会に来ますか?
+    ko: 화자는 오늘 밤 모임에 오나요?
+  texts:
+    en: {holds: "Tonight's party? I'll be there, looking forward to it.", fails: "Tonight's party? Tonight is a bit... please ask me again next time."}
+    ja: {holds: "今夜の飲み会ですか?行きます、楽しみにしています。", fails: "今夜の飲み会ですか?今日はちょっと…また今度誘ってください。"}
+    ko: {holds: "오늘 밤 모임이요? 갈게요, 기대하고 있어요.", fails: "오늘 밤 모임이요? 오늘은 좀… 다음에 또 불러 주세요."}
+
+- phenomenon: indirect_refusal
+  question:
+    en: Did the customer decide to buy it?
+    ja: 客は購入を決めましたか?
+    ko: 손님은 구매를 결정했나요?
+  texts:
+    en: {holds: "Customer: I'll take this one.", fails: "Customer: Let me think about it."}
+    ja: {holds: "客「これ、いただきます。」", fails: "客「ちょっと考えておきます。」"}
+    ko: {holds: "손님: 이걸로 할게요.", fails: "손님: 좀 생각해 볼게요."}
+
+- phenomenon: omitted_subject
+  question:
+    en: Did Tanaka pay for the meal?
+    ja: 食事代を払ったのは田中さんですか?
+    ko: 식사비를 낸 사람은 다나카 씨인가요?
+  texts:
+    en: {holds: "Went out to eat with Tanaka yesterday. Got treated.", fails: "Went out to eat with Tanaka yesterday. Treated him."}
+    ja: {holds: "昨日、田中さんと食事に行った。ごちそうになった。", fails: "昨日、田中さんと食事に行った。ごちそうした。"}
+    ko: {holds: "어제 다나카 씨와 식사하러 갔다. 얻어먹었다.", fails: "어제 다나카 씨와 식사하러 갔다. 한턱냈다."}
+
+- phenomenon: omitted_subject
+  question:
+    en: Was Sato the one teaching?
+    ja: 教えた側は佐藤さんですか?
+    ko: 가르친 쪽은 사토 씨인가요?
+  texts:
+    en: {holds: "Had a Ruby study session with Sato. Got taught how to use blocks.", fails: "Had a Ruby study session with Sato. Taught how to use blocks."}
+    ja: {holds: "佐藤さんとRubyの勉強会をした。ブロックの使い方を教えてもらった。", fails: "佐藤さんとRubyの勉強会をした。ブロックの使い方を教えてあげた。"}
+    ko: {holds: "사토 씨와 Ruby 스터디를 했다. 블록 쓰는 법을 배웠다.", fails: "사토 씨와 Ruby 스터디를 했다. 블록 쓰는 법을 가르쳐 줬다."}
+
+- phenomenon: omitted_subject
+  question:
+    en: Did Yamada lend an umbrella to the speaker?
+    ja: 山田さんは話し手に傘を貸しましたか?
+    ko: 야마다 씨가 화자에게 우산을 빌려줬나요?
+  texts:
+    en: {holds: "It started raining on the way home. Yamada was there, so borrowed an umbrella.", fails: "It started raining on the way home. Yamada was there, so lent an umbrella."}
+    ja: {holds: "帰り道で雨が降ってきた。山田さんがいたので、傘を貸してもらった。", fails: "帰り道で雨が降ってきた。山田さんがいたので、傘を貸してあげた。"}
+    ko: {holds: "집에 가는 길에 비가 오기 시작했다. 야마다 씨가 있어서 우산을 빌렸다.", fails: "집에 가는 길에 비가 오기 시작했다. 야마다 씨가 있어서 우산을 빌려줬다."}
+
+- phenomenon: omitted_subject
+  question:
+    en: Was the speaker the one who was praised?
+    ja: 褒められたのは話し手ですか?
+    ko: 칭찬받은 사람은 화자인가요?
+  texts:
+    en: {holds: "Showed the manager the draft. Was praised.", fails: "Was shown the draft by a junior colleague. Praised it."}
+    ja: {holds: "部長に原稿を見せた。褒められた。", fails: "後輩に原稿を見せられた。褒めた。"}
+    ko: {holds: "부장님께 원고를 보여 드렸다. 칭찬받았다.", fails: "후배가 원고를 보여 줬다. 칭찬했다."}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from MAPPA", fails: "An announcement from Mercari"}
+    ja: {holds: "MAPPAからのお知らせ", fails: "メルカリからのお知らせ"}
+    ko: {holds: "MAPPA의 공지", fails: "메루카리의 공지"}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from Studio Ghibli", fails: "An announcement from SoftBank"}
+    ja: {holds: "スタジオジブリからのお知らせ", fails: "ソフトバンクからのお知らせ"}
+    ko: {holds: "스튜디오 지브리의 공지", fails: "소프트뱅크의 공지"}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from Doga Kobo", fails: "An announcement from Yamato Transport"}
+    ja: {holds: "動画工房からのお知らせ", fails: "ヤマト運輸からのお知らせ"}
+    ko: {holds: "동화공방의 공지", fails: "야마토 운수의 공지"}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from ufotable", fails: "An announcement from Cybozu"}
+    ja: {holds: "ufotableからのお知らせ", fails: "サイボウズからのお知らせ"}
+    ko: {holds: "유포테이블의 공지", fails: "사이보우즈의 공지"}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from P.A.WORKS", fails: "An announcement from Lawson"}
+    ja: {holds: "P.A.WORKSからのお知らせ", fails: "ローソンからのお知らせ"}
+    ko: {holds: "P.A.WORKS의 공지", fails: "로손의 공지"}
+
+- phenomenon: proper_noun_only
+  question:
+    en: Is this an announcement from an anime studio?
+    ja: これはアニメ制作会社からのお知らせですか?
+    ko: 이것은 애니메이션 제작사의 공지인가요?
+  texts:
+    en: {holds: "An announcement from Bones", fails: "An announcement from Rakuten"}
+    ja: {holds: "ボンズからのお知らせ", fails: "楽天からのお知らせ"}
+    ko: {holds: "본즈의 공지", fails: "라쿠텐의 공지"}
+
+- phenomenon: date_notation
+  question:
+    en: Is the event on a Saturday?
+    ja: イベントは土曜日ですか?
+    ko: 이벤트는 토요일인가요?
+  texts:
+    en: {holds: "The screening event is on 9/19 (Sat).", fails: "The screening event is on 9/20 (Sun)."}
+    ja: {holds: "上映イベントは9/19(土)です。", fails: "上映イベントは9/20(日)です。"}
+    ko: {holds: "상영 이벤트는 9/19(토)입니다.", fails: "상영 이벤트는 9/20(일)입니다."}
+
+- phenomenon: date_notation
+  question:
+    en: Is the deadline next week?
+    ja: 締め切りは来週ですか?
+    ko: 마감은 다음 주인가요?
+  texts:
+    en: {holds: "The deadline for applications is Friday of next week.", fails: "The deadline for applications is the first Friday of next month."}
+    ja: {holds: "応募の締め切りは来週の金曜です。", fails: "応募の締め切りは来月の第一金曜です。"}
+    ko: {holds: "응모 마감은 다음 주 금요일입니다.", fails: "응모 마감은 다음 달 첫 금요일입니다."}
+
+- phenomenon: date_notation
+  question:
+    en: Does the broadcast start in the morning?
+    ja: 放送は午前中に始まりますか?
+    ko: 방송은 오전에 시작하나요?
+  texts:
+    en: {holds: "The first episode airs from 9 AM.", fails: "The first episode airs from 9 PM."}
+    ja: {holds: "第1話は午前9時から放送します。", fails: "第1話は午後9時から放送します。"}
+    ko: {holds: "1화는 오전 9시부터 방송합니다.", fails: "1화는 오후 9시부터 방송합니다."}
+
+- phenomenon: date_notation
+  question:
+    en: Is the sale held at the end of the month?
+    ja: セールは月末に行われますか?
+    ko: 세일은 월말에 열리나요?
+  texts:
+    en: {holds: "The sale runs for the last three days of this month.", fails: "The sale runs for the first three days of this month."}
+    ja: {holds: "セールは今月末の3日間です。", fails: "セールは今月頭の3日間です。"}
+    ko: {holds: "세일은 이번 달 말 사흘간입니다.", fails: "세일은 이번 달 초 사흘간입니다."}
+
+- phenomenon: date_notation
+  question:
+    en: Is the release in the year 2026?
+    ja: 発売は西暦2026年ですか?
+    ko: 발매는 서기 2026년인가요?
+  texts:
+    en: {holds: "The Blu-ray goes on sale in December 2026.", fails: "The Blu-ray went on sale in December 2023."}
+    ja: {holds: "Blu-rayは令和8年12月に発売します。", fails: "Blu-rayは令和5年12月に発売しました。"}
+    ko: {holds: "Blu-ray는 레이와 8년 12월에 발매합니다.", fails: "Blu-ray는 레이와 5년 12월에 발매했습니다."}
